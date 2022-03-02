@@ -66,23 +66,29 @@ namespace asteroids {
                 ply.FillColour = new Color(randbyte(), randbyte(), randbyte());
             }
 
+            // Player movement
             if (plySpeed <= maxMoveSpeed) {
                 if (kb["w"].isPressed) {
-                    ply.SetYVelocity(ply.Velocity.Y - plyMoveSpeed * delta);
+                    ply.AddYVelocity(-plyMoveSpeed * delta);
                 }
 
                 if (kb["s"].isPressed) {
-                    ply.SetYVelocity(ply.Velocity.Y + plyMoveSpeed * delta);
+                    ply.AddYVelocity(plyMoveSpeed * delta);
                 }
 
                 if (kb["a"].isPressed) {
-                    ply.SetXVelocity(ply.Velocity.X - plyMoveSpeed * delta);
+                    ply.AddXVelocity(-plyMoveSpeed * delta);
                 }
 
                 if (kb["d"].isPressed) {
-                    ply.SetXVelocity(ply.Velocity.X + plyMoveSpeed * delta);
+                    ply.AddXVelocity(plyMoveSpeed * delta);
                 }
             }
+
+            if (ply.Position.X < 0) { ply.SetXPosition(screenSize.X); }
+            if (ply.Position.X > screenSize.X) { ply.SetXPosition(0); }
+            if (ply.Position.Y < 0) { ply.SetYPosition(screenSize.Y); }
+            if (ply.Position.Y > screenSize.Y) { ply.SetYPosition(0); }
             
             ply.update(delta);
         }
@@ -100,6 +106,8 @@ namespace asteroids {
             // do updates
             // draw!
             while (window.IsOpen) {
+                if (!window.HasFocus()) { continue; }
+
                 if ((float)(DateTime.Now - lastTime).TotalMilliseconds < timeStep) { continue; }
                 float delta = timeStep * timeScale;
                 lastTime = DateTime.Now;

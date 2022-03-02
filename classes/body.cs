@@ -81,20 +81,41 @@ namespace asteroids {
         public void SetPosition(Vector2i position) {
             this.Position = (Vector2f)position;
         }
+
         public void SetPosition(Vector2f position) {
             this.Position = position;
+        }
+
+        public void SetXPosition(float x) {
+            this.position.X = x;
+        }
+
+        public void SetYPosition(float y) {
+            this.position.Y = y;
         }
 
         public void SetVelocity(Vector2f velocity) {
             this.Velocity = velocity;
         }
 
+        public void AddVelocity(Vector2f velocity) {
+            this.velocity += velocity;
+        }
+
         public void SetXVelocity(float x) {
             this.velocity.X = x;
         }
 
+        public void AddXVelocity(float x) {
+            this.velocity.X += x;
+        }
+
         public void SetYVelocity(float y) {
             this.velocity.Y = y;
+        }
+
+        public void AddYVelocity(float y) {
+            this.velocity.Y += y;
         }
 
         public void update(float delta) {
