@@ -26,6 +26,9 @@ namespace asteroids {
         float timeScale = 1f;
         circlebody ply;
 
+        float maxMoveSpeed = 10f;
+        float plyMoveSpeed = 1f;
+
         public asteroids() {
             screenSize =new Vector2f(800, 800);
             kb = new keyboard();
@@ -63,21 +66,21 @@ namespace asteroids {
                 ply.FillColour = new Color(randbyte(), randbyte(), randbyte());
             }
 
-            if (plySpeed <= 100f) {
+            if (plySpeed <= maxMoveSpeed) {
                 if (kb["w"].isPressed) {
-                    ply.SetYVelocity(ply.Velocity.Y - 10 * delta);
+                    ply.SetYVelocity(ply.Velocity.Y - plyMoveSpeed * delta);
                 }
 
                 if (kb["s"].isPressed) {
-                    ply.SetYVelocity(ply.Velocity.Y + 10 * delta);
+                    ply.SetYVelocity(ply.Velocity.Y + plyMoveSpeed * delta);
                 }
 
                 if (kb["a"].isPressed) {
-                    ply.SetXVelocity(ply.Velocity.X - 10 * delta);
+                    ply.SetXVelocity(ply.Velocity.X - plyMoveSpeed * delta);
                 }
 
                 if (kb["d"].isPressed) {
-                    ply.SetXVelocity(ply.Velocity.X + 100 * delta);
+                    ply.SetXVelocity(ply.Velocity.X + plyMoveSpeed * delta);
                 }
             }
             
@@ -98,7 +101,7 @@ namespace asteroids {
             // draw!
             while (window.IsOpen) {
                 if ((float)(DateTime.Now - lastTime).TotalMilliseconds < timeStep) { continue; }
-                float delta = timeStep;
+                float delta = timeStep * timeScale;
                 lastTime = DateTime.Now;
                 runTime += delta;
 
