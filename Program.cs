@@ -29,6 +29,8 @@ namespace asteroids {
         float maxMoveSpeed = 10f;
         float plyMoveSpeed = 1f;
 
+        VertexArray test;
+
         public asteroids() {
             screenSize =new Vector2f(800, 800);
             kb = new keyboard();
@@ -42,6 +44,16 @@ namespace asteroids {
             window.SetView(view);
             window.SetKeyRepeatEnabled(false);
             window.Closed += window_CloseWindow;
+            
+            float offset = 50;
+
+            test = new VertexArray(PrimitiveType.LineStrip, 5);
+            //test[0] = new Vertex(new Vector2f(offset, offset), Color.White);
+            test[0] = new Vertex(new Vector2f(offset, offset - 24), Color.White);
+            test[1] = new Vertex(new Vector2f(offset + 18, offset + 24), Color.White);
+            test[2] = new Vertex(new Vector2f(offset, offset + 18), Color.White);
+            test[3] = new Vertex(new Vector2f(offset - 18, offset + 24), Color.White);
+            test[4] = new Vertex(new Vector2f(offset, offset - 24), Color.White);
         }
 
         private void window_CloseWindow(object? sender, System.EventArgs? e) {
@@ -97,6 +109,7 @@ namespace asteroids {
             window.Clear();
 
             ply.draw(window);
+            test.Draw(window, RenderStates.Default);
 
             window.Display();
         }
@@ -105,6 +118,7 @@ namespace asteroids {
             // get player input
             // do updates
             // draw!
+
             while (window.IsOpen) {
                 if (!window.HasFocus()) { continue; }
 
