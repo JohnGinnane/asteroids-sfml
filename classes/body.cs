@@ -4,16 +4,32 @@ using static asteroids.util;
 
 namespace asteroids {
     public abstract class body {
-        internal Shape shape;
-        public Shape Shape {
+        internal Drawable shape;
+        public Drawable Shape {
             get { return shape; }
+            set {
+                this.shape = value;
+                this.shapeType = value.GetType();
+            }
         }
+
+        internal Type shapeType;
+
         private Vector2f position;
         public Vector2f Position {
             get { return position; }
             set {
                 position = value;
-                shape.Position = value + shapeOffset;
+
+                if (shapeType == typeof(CircleShape)) {
+                    ((CircleShape)shape).Position = value + shapeOffset;
+                    return;
+                }
+
+                if (shapeType == typeof(RectangleShape)) {
+                    ((RectangleShape)shape).Position = value + shapeOffset;
+                    return;
+                }
             }
         }
         
@@ -24,7 +40,16 @@ namespace asteroids {
             get { return fillColour; }
             set {
                 fillColour = value;
-                Shape.FillColor = value;
+
+                if (shapeType == typeof(CircleShape)) {
+                    ((CircleShape)shape).FillColor = value;
+                    return;
+                }
+
+                if (shapeType == typeof(RectangleShape)) {
+                    ((RectangleShape)shape).FillColor = value;
+                    return;
+                }
             }
         }
 
@@ -33,7 +58,16 @@ namespace asteroids {
             get { return outlineColour; }
             set {
                 outlineColour = value;
-                Shape.OutlineColor = value;
+                
+                if (shapeType == typeof(CircleShape)) {
+                    ((CircleShape)shape).OutlineColor = value;
+                    return;
+                }
+
+                if (shapeType == typeof(RectangleShape)) {
+                    ((RectangleShape)shape).OutlineColor = value;
+                    return;
+                }
             }
         }
 
@@ -42,7 +76,16 @@ namespace asteroids {
             get { return outlineThickness; }
             set {
                 outlineThickness = value;
-                Shape.OutlineThickness = value;
+                
+                if (shapeType == typeof(CircleShape)) {
+                    ((CircleShape)shape).OutlineThickness = value;
+                    return;
+                }
+
+                if (shapeType == typeof(RectangleShape)) {
+                    ((RectangleShape)shape).OutlineThickness = value;
+                    return;
+                }
             }
         }
 
@@ -76,6 +119,8 @@ namespace asteroids {
 
         internal body() {
             this.shape = new CircleShape(10);
+            this.shapeType = this.shape.GetType();
+            this.shapeOffset = new Vector2f();
         }
 
         public void SetPosition(Vector2i position) {
@@ -87,11 +132,11 @@ namespace asteroids {
         }
 
         public void SetXPosition(float x) {
-            this.position.X = x;
+            this.Position = new Vector2f(x, this.Position.Y);
         }
 
         public void SetYPosition(float y) {
-            this.position.Y = y;
+            this.Position = new Vector2f(this.Position.X, y);
         }
 
         public void SetVelocity(Vector2f velocity) {
@@ -99,34 +144,42 @@ namespace asteroids {
         }
 
         public void AddVelocity(Vector2f velocity) {
-            this.velocity += velocity;
+            this.Velocity = this.Velocity + velocity;
         }
 
         public void SetXVelocity(float x) {
-            this.velocity.X = x;
+            this.Velocity = new Vector2f(x, this.Velocity.Y);
         }
 
         public void AddXVelocity(float x) {
-            this.velocity.X += x;
+            this.Velocity = this.Velocity + new Vector2f(x, 0);
         }
 
         public void SetYVelocity(float y) {
-            this.velocity.Y = y;
+            this.Velocity = new Vector2f(this.Velocity.X, y);
         }
 
         public void AddYVelocity(float y) {
-            this.velocity.Y += y;
+            this.Velocity = this.Velocity + new Vector2f(0, y);
         }
 
-        public void update(float delta) {
+        public virtual void update(float delta) {
             if (!isStatic) {
                 this.Position += this.Velocity * delta;
-                this.velocity *= (1f - this.Drag * delta);
+                this.Velocity *= (1f - this.Drag * delta);
             }
         }
 
-        public void draw(RenderWindow window) {
-            window.Draw(this.Shape);
+        public virtual void draw(RenderWindow window) {            
+            if (shapeType == typeof(CircleShape)) {
+                window.Draw(this.Shape);
+                return;
+            }
+
+            if (shapeType == typeof(RectangleShape)) {
+                window.Draw(this.Shape);
+                return;
+            }
         }
 
         public bool collide(body otherbody) {

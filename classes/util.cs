@@ -10,6 +10,7 @@ namespace asteroids {
             v.Y = randfloat(miny, maxy);
             return v;
         }
+
         public static Vector2f randvec2(float min, float max) {
             return randvec2(min, max, min, max);
         }
@@ -27,6 +28,16 @@ namespace asteroids {
         public static byte randbyte()  {
             Random r = new Random((int)(DateTime.Now.Ticks%Int32.MaxValue));
             return (byte)(r.NextDouble() * 256);
+        }
+
+        public static VertexArray rotate(VertexArray va, float angle) {
+            VertexArray vaout = new VertexArray(va);
+            
+            for (uint i = 0; i < vaout.VertexCount; i++) {
+                vaout[i] = new Vertex(rotate(vaout[i].Position, angle), vaout[i].Color);
+            }
+            
+            return vaout;
         }
 
         public static Color hsvtocol(float hue, float sat, float val)
@@ -78,6 +89,23 @@ namespace asteroids {
 
         public static Vector2f reflect(Vector2f dir, Vector2f normal) {
             return -2f * dot(dir, normal) * normal + dir;
+        }
+
+        public static Vector2f vector2f(double angle) {
+            return new Vector2f((float)Math.Cos(angle), (float)Math.Sin(angle));
+        }
+
+        public static Vector2f rotate(Vector2f vector, double angle) {
+            if (angle == 0) { return vector; }
+            if (angle == (float)Math.PI /  2f) { return new Vector2f(-vector.Y,  vector.X); }
+            if (angle == (float)Math.PI / -2f) { return new Vector2f( vector.Y, -vector.X); }
+            if (angle == (float)Math.PI)       { return new Vector2f(-vector.X, -vector.Y); }
+
+            float c = (float)Math.Cos(angle);
+            float s = (float)Math.Sin(angle);
+
+            return new Vector2f(vector.X * c - vector.Y * s,
+                                vector.X * s - vector.Y * c);
         }
 
         public static void drawText(RenderWindow window, string text, Vector2f pos, Font? font = null, uint size = 12) {
