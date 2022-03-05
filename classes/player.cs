@@ -30,7 +30,7 @@ namespace asteroids {
             this.ship.AngularDrag = 0.99f;
             this.ship.Debug = true;
         }
-
+        
         public void update(float delta) {
             
             float plySpeed = magnitude(ship.Velocity);

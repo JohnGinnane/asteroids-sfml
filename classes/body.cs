@@ -4,28 +4,12 @@ using static asteroids.util;
 
 namespace asteroids {
     public abstract class body {
+#region "Properties"
         private bool debug;
         public bool Debug {
             get { return debug; }
             set { debug = value; }
         }
-
-        internal Type? shapeType;
-
-        internal Drawable? shape;
-        public Drawable? Shape {
-            get { return shape; }
-            set {
-                if (value == null) { 
-                    this.shape = null;
-                    this.shapeType = null;
-                } else {
-                    this.shape = value;
-                    this.shapeType = value.GetType();
-                }
-            }
-        }
-
 
         private Vector2f position;
         public Vector2f Position {
@@ -45,7 +29,49 @@ namespace asteroids {
             }
         }
         
-        public bool justCollided = false;
+        private Vector2f velocity;
+        public Vector2f Velocity {
+            get { return velocity; }
+            set { velocity = value; }
+        }
+
+        private float mass = 100f;
+        public float Mass {
+            get { return mass; }
+            set { mass = value; }
+        }
+
+        private float bounciness = 1f;
+        public float Bounciness {
+            get { return bounciness; }
+            set { bounciness = value; }
+        }
+        
+        private float drag = 0.01f;
+        public float Drag {
+            get { return drag; }
+            set { drag = value; }
+        }
+        
+        public bool isStatic = false;
+
+        internal Drawable? shape;
+        public Drawable? Shape {
+            get { return shape; }
+            set {
+                if (value == null) { 
+                    this.shape = null;
+                    this.shapeType = null;
+                } else {
+                    this.shape = value;
+                    this.shapeType = value.GetType();
+                }
+            }
+        }
+
+        internal Type? shapeType;
+
+        internal Vector2f shapeOffset;
 
         private Color fillColour;
         public Color FillColour {
@@ -100,34 +126,7 @@ namespace asteroids {
                 }
             }
         }
-
-        private Vector2f velocity;
-        public Vector2f Velocity {
-            get { return velocity; }
-            set { velocity = value; }
-        }
-
-        public bool isStatic = false;
-
-        private float mass = 100f;
-        public float Mass {
-            get { return mass; }
-            set { mass = value; }
-        }
-
-        private float bounciness = 1f;
-        public float Bounciness {
-            get { return bounciness; }
-            set { bounciness = value; }
-        }
-        
-        private float drag = 0.01f;
-        public float Drag {
-            get { return drag; }
-            set { drag = value; }
-        }
-
-        internal Vector2f shapeOffset;
+#endregion
 
         public void SetPosition(Vector2i position) {
             this.Position = (Vector2f)position;
