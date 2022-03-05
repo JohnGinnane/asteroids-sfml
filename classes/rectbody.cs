@@ -7,7 +7,9 @@ namespace asteroids {
         private Vector2f size;
         public Vector2f Size {
             get {return size;}
-            set { 
+            set {
+                if (this.Shape == null) { return; }
+                
                 size = value;
                 ((RectangleShape)Shape).Size = value;
                 shapeOffset = new Vector2f(-size.X / 2f, -size.Y / 2f);

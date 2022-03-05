@@ -10,16 +10,22 @@ namespace asteroids {
             set { debug = value; }
         }
 
-        internal Drawable shape;
-        public Drawable Shape {
+        internal Type? shapeType;
+
+        internal Drawable? shape;
+        public Drawable? Shape {
             get { return shape; }
             set {
-                this.shape = value;
-                this.shapeType = value.GetType();
+                if (value == null) { 
+                    this.shape = null;
+                    this.shapeType = null;
+                } else {
+                    this.shape = value;
+                    this.shapeType = value.GetType();
+                }
             }
         }
 
-        internal Type shapeType;
 
         private Vector2f position;
         public Vector2f Position {
@@ -27,13 +33,13 @@ namespace asteroids {
             set {
                 position = value;
 
-                if (shapeType == typeof(CircleShape)) {
-                    ((CircleShape)shape).Position = value + shapeOffset;
+                if (shapeType == typeof(CircleShape) && Shape != null) {
+                    ((CircleShape)Shape).Position = value + shapeOffset;
                     return;
                 }
 
-                if (shapeType == typeof(RectangleShape)) {
-                    ((RectangleShape)shape).Position = value + shapeOffset;
+                if (shapeType == typeof(RectangleShape) && Shape != null) {
+                    ((RectangleShape)Shape).Position = value + shapeOffset;
                     return;
                 }
             }
@@ -47,13 +53,13 @@ namespace asteroids {
             set {
                 fillColour = value;
 
-                if (shapeType == typeof(CircleShape)) {
-                    ((CircleShape)shape).FillColor = value;
+                if (shapeType == typeof(CircleShape) && Shape != null) {
+                    ((CircleShape)Shape).FillColor = value;
                     return;
                 }
 
-                if (shapeType == typeof(RectangleShape)) {
-                    ((RectangleShape)shape).FillColor = value;
+                if (shapeType == typeof(RectangleShape) && Shape != null) {
+                    ((RectangleShape)Shape).FillColor = value;
                     return;
                 }
             }
@@ -65,13 +71,13 @@ namespace asteroids {
             set {
                 outlineColour = value;
                 
-                if (shapeType == typeof(CircleShape)) {
-                    ((CircleShape)shape).OutlineColor = value;
+                if (shapeType == typeof(CircleShape) && Shape != null) {
+                    ((CircleShape)Shape).OutlineColor = value;
                     return;
                 }
 
-                if (shapeType == typeof(RectangleShape)) {
-                    ((RectangleShape)shape).OutlineColor = value;
+                if (shapeType == typeof(RectangleShape) && Shape != null) {
+                    ((RectangleShape)Shape).OutlineColor = value;
                     return;
                 }
             }
@@ -83,13 +89,13 @@ namespace asteroids {
             set {
                 outlineThickness = value;
                 
-                if (shapeType == typeof(CircleShape)) {
-                    ((CircleShape)shape).OutlineThickness = value;
+                if (shapeType == typeof(CircleShape) && Shape != null) {
+                    ((CircleShape)Shape).OutlineThickness = value;
                     return;
                 }
 
-                if (shapeType == typeof(RectangleShape)) {
-                    ((RectangleShape)shape).OutlineThickness = value;
+                if (shapeType == typeof(RectangleShape) && Shape != null) {
+                    ((RectangleShape)Shape).OutlineThickness = value;
                     return;
                 }
             }
@@ -122,12 +128,6 @@ namespace asteroids {
         }
 
         internal Vector2f shapeOffset;
-
-        internal body() {
-            this.shape = new CircleShape(10);
-            this.shapeType = this.shape.GetType();
-            this.shapeOffset = new Vector2f();
-        }
 
         public void SetPosition(Vector2i position) {
             this.Position = (Vector2f)position;
@@ -176,7 +176,9 @@ namespace asteroids {
             }
         }
 
-        public virtual void draw(RenderWindow window) {            
+        public virtual void draw(RenderWindow window) { 
+            if (this.Shape == null) { return; }
+
             if (shapeType == typeof(CircleShape)) {
                 window.Draw(this.Shape);
             } else if (shapeType == typeof(RectangleShape)) {

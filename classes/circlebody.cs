@@ -8,7 +8,8 @@ namespace asteroids {
         public float Radius {
             get { return radius; }
             set {
-                radius = value;
+                if (Shape == null) { return; }
+                this.radius = value;
                 ((CircleShape)Shape).Radius = value;
                 shapeOffset = new Vector2f(-radius, -radius);
             }

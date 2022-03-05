@@ -6,12 +6,12 @@ namespace asteroids {
     public class player {
         private polybody ship;
 
-        private float fireCooldown = 0.25f;
-        private float lastFire = 0f;
-        private float maxMoveSpeed = 20f;
-        private float plyMoveSpeed = 2f;
-        private float maxTurnSpeed = 0.2f;
-        private float plyTurnSpeed = 0.1f; // radians
+        // private float fireCooldown = 0.25f;
+        // private float lastFire = 0f;
+        private float maxMoveSpeed = 200f;
+        private float plyMoveSpeed = 200f;
+        private float maxTurnSpeed = 20f;
+        private float plyTurnSpeed = 29f; // radians
 
         public player() {
             float offsetx = 0f;
@@ -26,7 +26,9 @@ namespace asteroids {
             
             this.ship = new polybody(rotate(va, (float)Math.PI/2f));
             this.ship.Position = new Vector2f(400, 400);
-            this.ship.Drag = 0.01f;
+            this.ship.Drag = 0.5f;
+            this.ship.AngularDrag = 0.99f;
+            this.ship.Debug = true;
         }
 
         public void update(float delta) {

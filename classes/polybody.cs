@@ -20,6 +20,24 @@ namespace asteroids {
             set { angularVelocity = value; }
         }
 
+        private float angularDrag = 0.1f;
+        public float AngularDrag {
+            get { return angularDrag; }
+            set { angularDrag = value; }
+        }
+        public polybody() {
+            VertexArray va = new VertexArray(PrimitiveType.LineStrip, 4);
+            for (uint i = 0; i < 4; i++) {
+                float radius = 20f;
+                Vector2f point = new Vector2f();
+                point.X = (float)Math.Sin(Math.PI/180f * 120 * i) * radius;
+                point.Y = (float)Math.Cos(Math.PI/180f * 120 * i) * radius;
+
+                va[i] = new Vertex(this.Position + point, Color.White);
+            }
+            this.Shape = va;
+        }
+
         public polybody(VertexArray va) {
             this.Shape = va;
         }
@@ -28,14 +46,17 @@ namespace asteroids {
         {
             if (!isStatic) {
                 this.Angle += this.AnglularVelocity * delta;
-                this.AnglularVelocity *= (1f - this.Drag * delta);
+                this.AnglularVelocity *= (1f - this.AngularDrag * delta);
             }
 
             base.update(delta);
         }
 
-        public override void draw(RenderWindow window) {            
-            VertexArray ogva = (VertexArray)shape;
+        public override void draw(RenderWindow window) {    
+            if (this.Shape == null) { return; }
+            if (this.shapeType  != typeof(VertexArray)) { return; }
+                    
+            VertexArray ogva = (VertexArray)Shape;
             VertexArray va = new VertexArray(ogva);
             for (uint i = 0; i < va.VertexCount; i++) {
                 if (angle == 0) {

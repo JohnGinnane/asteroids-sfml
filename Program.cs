@@ -10,7 +10,6 @@ namespace asteroids {
         static void Main(string[] args) {
             Console.WriteLine("Hi :-)");
             Global.ScreenSize = new Vector2f(800, 800);
-
             asteroids game = new asteroids();
             game.run();
         }
@@ -24,11 +23,22 @@ namespace asteroids {
         double runTime = 0;
         float timeStep = 1/60f;
         float timeScale = 1f;
+
+        // performance data
+        uint updatesAcc;
+        DateTime updateLastTime;
+        float updatesPerSecond;
+
+        uint framesAcc;
+        DateTime frameLastTime;
+        float framesPerSecond;
         
         player ply;
         List<asteroid> listAsteroids;
 
         public asteroids() {
+            updateLastTime = DateTime.Now;
+            frameLastTime = DateTime.Now;
             ply = new player();
             
             window = new RenderWindow(new VideoMode((uint)Global.ScreenSize.X, (uint)Global.ScreenSize.Y),
@@ -40,14 +50,13 @@ namespace asteroids {
             window.SetKeyRepeatEnabled(false);
             window.Closed += window_CloseWindow;
             listAsteroids = new List<asteroid>();
-
+            
             for (int i = 5; i > 0; i--) {
                 asteroid a= new asteroid();
                 a.Position = randvec2(0, Global.ScreenSize.X, 0, Global.ScreenSize.Y);
+                a.Velocity = randvec2(-10, 10) * 3f;
                 a.Debug = true;
                 a.Drag = 0f;
-                a.Radius = 20f;
-                a.FillColour = Color.Red; 
                 listAsteroids.Add(a);
             }
         }
@@ -62,6 +71,13 @@ namespace asteroids {
         }
 
         private void update(float delta) {
+            updatesAcc++;
+            if ((DateTime.Now - updateLastTime).TotalMilliseconds >= 1000) {
+                updatesPerSecond = updatesAcc;
+                updateLastTime = DateTime.Now;
+                updatesAcc = 0;
+            }
+
             Global.Keyboard.update();
 
             if (Global.Keyboard["escape"].isPressed) {
@@ -70,19 +86,22 @@ namespace asteroids {
             
             ply.update(delta);
 
-            foreach (asteroid a in listAsteroids) {
-                a.update(delta);
-            }
+            foreach (asteroid a in listAsteroids) { a.update(delta); }
         }
 
         private void draw() {
+            framesAcc++;
+            if ((DateTime.Now - frameLastTime).TotalMilliseconds >= 1000) {
+                framesPerSecond = framesAcc;
+                frameLastTime = DateTime.Now;
+                framesAcc = 0;
+            }
+
             window.Clear();
 
             ply.draw(window);
 
-            foreach (asteroid a in listAsteroids) {
-                a.draw(window);
-            }
+            foreach (asteroid a in listAsteroids) { a.draw(window); }
 
             window.Display();
         }
@@ -91,13 +110,17 @@ namespace asteroids {
             while (window.IsOpen) {
                 if (!window.HasFocus()) { continue; }
 
-                if ((float)(DateTime.Now - lastTime).TotalMilliseconds < timeStep) { continue; }
-                float delta = timeStep * timeScale;
-                lastTime = DateTime.Now;
-                runTime += delta;
+                if ((float)(DateTime.Now - lastTime).TotalMilliseconds / 1000f >= timeStep) {
+                    float delta = timeStep * timeScale;
+                    lastTime = DateTime.Now;
+                    runTime += delta;
 
-                window.DispatchEvents();
-                update(delta);
+                    window.DispatchEvents();
+                    update(delta);
+
+                    window.SetTitle(String.Format("Asteroids (FPS: {0}, UPS: {1})", framesPerSecond.ToString(), updatesPerSecond.ToString()));
+                }
+
                 draw();
             }
         }
