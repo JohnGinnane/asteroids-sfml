@@ -6,8 +6,11 @@ using static asteroids.util;
 
 namespace asteroids {
     static class Program {
+        
         static void Main(string[] args) {
             Console.WriteLine("Hi :-)");
+            Global.ScreenSize = new Vector2f(800, 800);
+
             asteroids game = new asteroids();
             game.run();
         }
@@ -17,29 +20,36 @@ namespace asteroids {
         RenderWindow window;
         View view;
 
-        keyboard kb;
-        Vector2f screenSize;
-        
         DateTime lastTime;
         double runTime = 0;
         float timeStep = 1/60f;
         float timeScale = 1f;
         
         player ply;
+        List<asteroid> listAsteroids;
 
         public asteroids() {
-            screenSize =new Vector2f(800, 800);
-            kb = new keyboard();
             ply = new player();
             
-            window = new RenderWindow(new VideoMode((uint)screenSize.X, (uint)screenSize.Y),
+            window = new RenderWindow(new VideoMode((uint)Global.ScreenSize.X, (uint)Global.ScreenSize.Y),
                                       "Asteroids",
                                       Styles.Default);
 
-            view = new View(screenSize/2f, screenSize);
+            view = new View(Global.ScreenSize/2f, Global.ScreenSize);
             window.SetView(view);
             window.SetKeyRepeatEnabled(false);
             window.Closed += window_CloseWindow;
+            listAsteroids = new List<asteroid>();
+
+            for (int i = 5; i > 0; i--) {
+                asteroid a= new asteroid();
+                a.Position = randvec2(0, Global.ScreenSize.X, 0, Global.ScreenSize.Y);
+                a.Debug = true;
+                a.Drag = 0f;
+                a.Radius = 20f;
+                a.FillColour = Color.Red; 
+                listAsteroids.Add(a);
+            }
         }
 
         private void window_CloseWindow(object? sender, System.EventArgs? e) {
@@ -48,17 +58,21 @@ namespace asteroids {
         }
 
         private void input() {
-            kb.update();
+            Global.Keyboard.update();
         }
 
         private void update(float delta) {
-            kb.update();
+            Global.Keyboard.update();
 
-            if (kb["escape"].isPressed) {
+            if (Global.Keyboard["escape"].isPressed) {
                 window.Close();
             }
             
-            ply.update(delta, kb, screenSize);
+            ply.update(delta);
+
+            foreach (asteroid a in listAsteroids) {
+                a.update(delta);
+            }
         }
 
         private void draw() {
@@ -66,14 +80,14 @@ namespace asteroids {
 
             ply.draw(window);
 
+            foreach (asteroid a in listAsteroids) {
+                a.draw(window);
+            }
+
             window.Display();
         }
 
         public void run() {
-            // get player input
-            // do updates
-            // draw!
-
             while (window.IsOpen) {
                 if (!window.HasFocus()) { continue; }
 

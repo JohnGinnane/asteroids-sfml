@@ -14,12 +14,14 @@ namespace asteroids {
             }
         }
 
-        public circlebody(float radius, Vector2f pos, Color colour, float mass = 100) {
-            this.shape = new CircleShape();
+        internal circlebody() : this(10, Global.ScreenSize / 2f) {}
+
+        public circlebody(float radius, Vector2f pos) {
+            this.Shape = new CircleShape();
             this.Radius = radius;
-            this.FillColour = colour;
+            this.FillColour = Color.White;
             this.Position = pos;
-            this.Mass = mass;
+            this.Mass = 100f;
         }
     }
 }

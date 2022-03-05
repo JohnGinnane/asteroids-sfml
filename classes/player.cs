@@ -5,12 +5,12 @@ using static asteroids.util;
 namespace asteroids {
     public class player {
         private polybody ship;
-        
+
         private float fireCooldown = 0.25f;
         private float lastFire = 0f;
         private float maxMoveSpeed = 20f;
         private float plyMoveSpeed = 2f;
-        private float maxTurnSpeed = 0.4f;
+        private float maxTurnSpeed = 0.2f;
         private float plyTurnSpeed = 0.1f; // radians
 
         public player() {
@@ -29,33 +29,33 @@ namespace asteroids {
             this.ship.Drag = 0.01f;
         }
 
-        public void update(float delta, keyboard kb, Vector2f screenSize) {
+        public void update(float delta) {
             
             float plySpeed = magnitude(ship.Velocity);
 
             // Player movement
             if (plySpeed <= maxMoveSpeed) {
-                if (kb["w"].isPressed) {
+                if (Global.Keyboard["w"].isPressed) {
                     ship.AddVelocity(vector2f(ship.Angle) * plyMoveSpeed * delta);
                 }
 
-                if (kb["s"].isPressed) {
+                if (Global.Keyboard["s"].isPressed) {
                     //ship.AddYVelocity(plyMoveSpeed * delta);
                 }
             }
 
-            if (this.ship.AnglularVelocity > -maxTurnSpeed && kb["a"].isPressed) {
+            if (this.ship.AnglularVelocity > -maxTurnSpeed && Global.Keyboard["a"].isPressed) {
                 ship.AnglularVelocity -= plyTurnSpeed * delta;
             }
 
-            if (this.ship.AnglularVelocity < maxTurnSpeed && kb["d"].isPressed) {
+            if (this.ship.AnglularVelocity < maxTurnSpeed && Global.Keyboard["d"].isPressed) {
                 ship.AnglularVelocity += plyTurnSpeed * delta;
             }
 
-            if (ship.Position.X < 0) { ship.SetXPosition(screenSize.X); }
-            if (ship.Position.X > screenSize.X) { ship.SetXPosition(0); }
-            if (ship.Position.Y < 0) { ship.SetYPosition(screenSize.Y); }
-            if (ship.Position.Y > screenSize.Y) { ship.SetYPosition(0); }   
+            if (ship.Position.X < 0) { ship.SetXPosition(Global.ScreenSize.X); }
+            if (ship.Position.X > Global.ScreenSize.X) { ship.SetXPosition(0); }
+            if (ship.Position.Y < 0) { ship.SetYPosition(Global.ScreenSize.Y); }
+            if (ship.Position.Y > Global.ScreenSize.Y) { ship.SetYPosition(0); }   
 
             ship.update(delta);         
         }

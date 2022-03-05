@@ -52,6 +52,8 @@ namespace asteroids {
             }
             
             window.Draw(va, RenderStates.Default);
+
+            base.draw(window);
         }
     }
 }

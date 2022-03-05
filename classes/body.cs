@@ -4,6 +4,12 @@ using static asteroids.util;
 
 namespace asteroids {
     public abstract class body {
+        private bool debug;
+        public bool Debug {
+            get { return debug; }
+            set { debug = value; }
+        }
+
         internal Drawable shape;
         public Drawable Shape {
             get { return shape; }
@@ -108,7 +114,7 @@ namespace asteroids {
             get { return bounciness; }
             set { bounciness = value; }
         }
-
+        
         private float drag = 0.01f;
         public float Drag {
             get { return drag; }
@@ -173,12 +179,15 @@ namespace asteroids {
         public virtual void draw(RenderWindow window) {            
             if (shapeType == typeof(CircleShape)) {
                 window.Draw(this.Shape);
-                return;
+            } else if (shapeType == typeof(RectangleShape)) {
+                window.Draw(this.Shape);
             }
 
-            if (shapeType == typeof(RectangleShape)) {
-                window.Draw(this.Shape);
-                return;
+            if (this.Debug) {
+                VertexArray va = new VertexArray(PrimitiveType.Lines, 2);
+                va[0] = new Vertex(this.Position, Color.White);
+                va[1] = new Vertex(this.Position + this.Velocity, Color.White);
+                window.Draw(va, RenderStates.Default);
             }
         }
 
