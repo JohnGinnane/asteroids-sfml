@@ -11,6 +11,7 @@ namespace asteroids {
             set { debug = value; }
         }
 
+        // Movement properties
         private Vector2f position;
         public Vector2f Position {
             get { return position; }
@@ -35,6 +36,15 @@ namespace asteroids {
             set { velocity = value; }
         }
 
+        private float drag = 0.01f;
+        public float Drag {
+            get { return drag; }
+            set { drag = value; }
+        }
+
+        public bool isStatic = false;
+
+        // Collision properties
         private float mass = 100f;
         public float Mass {
             get { return mass; }
@@ -47,14 +57,7 @@ namespace asteroids {
             set { bounciness = value; }
         }
         
-        private float drag = 0.01f;
-        public float Drag {
-            get { return drag; }
-            set { drag = value; }
-        }
-        
-        public bool isStatic = false;
-
+        // Drawing properties
         internal Drawable? shape;
         public Drawable? Shape {
             get { return shape; }
@@ -128,6 +131,7 @@ namespace asteroids {
         }
 #endregion
 
+#region "Methods"
         public void SetPosition(Vector2i position) {
             this.Position = (Vector2f)position;
         }
@@ -293,4 +297,5 @@ namespace asteroids {
             return false;
         }
     }
+#endregion
 }
