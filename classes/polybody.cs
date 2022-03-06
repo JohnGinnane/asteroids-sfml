@@ -25,6 +25,7 @@ namespace asteroids {
             get { return angularDrag; }
             set { angularDrag = value; }
         }
+        
         public polybody() {
             VertexArray va = new VertexArray(PrimitiveType.LineStrip, 4);
             for (uint i = 0; i < 4; i++) {

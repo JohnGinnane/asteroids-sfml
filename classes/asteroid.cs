@@ -4,12 +4,26 @@ using SFML.Graphics;
 
 namespace asteroids {
     public class asteroid : polybody {
-        
-        public asteroid() {
+        public enum enumSize {
+            small,
+            large
+        }
+
+        public enumSize size;
+
+        public asteroid(enumSize size) {
             this.noCollideType = typeof(asteroid);
             uint numPoints = 12;
-            float angOffset = (float)Math.PI/180f * (360f / numPoints);
             float radius = 20f;
+            this.size = size;
+
+            if (size == enumSize.small)
+            {
+                numPoints = 8;
+                radius = 10f;
+            }
+
+            float angOffset = (float)Math.PI/180f * (360f / numPoints);
 
             VertexArray va = new VertexArray(PrimitiveType.LineStrip, numPoints + 1);
             for (uint i = 0; i < numPoints; i++) {
@@ -19,12 +33,18 @@ namespace asteroids {
                 point.X = (float)Math.Sin(angOffset * i) * thisRadius;
                 point.Y = (float)Math.Cos(angOffset * i) * thisRadius;
 
-                va[i] = new Vertex(this.Position + point, Color.White);
+                va[i] = new Vertex(point, Color.White);
             }
+
             va[numPoints] = new Vertex(va[0].Position, va[0].Color);
 
             this.Shape = va;
             this.Drag = 0f;
+            this.Velocity = randvec2(-80, 100, -80, 100);
+
+            if (size == enumSize.small) {
+                this.Velocity *= 2f;
+            }
         }
 
         public override void update(float delta)

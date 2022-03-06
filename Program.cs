@@ -36,7 +36,7 @@ namespace asteroids {
         DateTime frameLastTime;
         float framesPerSecond;
         
-        player ply;
+        player? ply;
         List<asteroid> listAsteroids;
 
         List<body?> bodies;
@@ -64,18 +64,18 @@ namespace asteroids {
             listAsteroids = new List<asteroid>();
             
             for (int i = 12; i > 0; i--) {
-                asteroid a= new asteroid();
+                asteroid a = new asteroid(asteroid.enumSize.large);
                 a.Position = randvec2(0, Global.ScreenSize.X, 0, Global.ScreenSize.Y);
-                a.Velocity = randvec2(-10, 10) * 3f;
-                a.Debug = true;
-                a.Drag = 0f;
                 listAsteroids.Add(a);
-
                 bodies.Add(a);
             }
 
+            // Load sounds
             Global.sfx.Add("fire", new sound("fire", "sound/fire.wav"));
             Global.sfx.Add("thrust", new sound("thrust", "sound/thrust.wav"));
+            Global.sfx.Add("bang1", new sound("bang1", "sound/bangSmall.wav"));
+            Global.sfx.Add("bang2", new sound("bang2", "sound/bangMedium.wav"));
+            Global.sfx.Add("bang3", new sound("bang3", "sound/bangLarge.wav"));
         }
 
         private void window_CloseWindow(object? sender, System.EventArgs? e) {
@@ -100,7 +100,7 @@ namespace asteroids {
                 window.Close();
             }
 
-            if (Global.Keyboard["space"].justPressed) {
+            if (Global.Keyboard["space"].isPressed && ply != null) {
                 torpedo? newTorpedo = ply.fire();
 
                 if (newTorpedo != null) { bodies.Add(newTorpedo); }
@@ -115,11 +115,14 @@ namespace asteroids {
             }
 
             // player is handled separately because of inputs
-            ply.update(delta);
+            if (ply != null) {
+                ply.update(delta);
+            }
 
             for (int k = bodies.Count - 1; k >= 0; k--) {
                 body? b = bodies[k];
                 if (b == null) { continue; }
+
                 Color debugColour = Colour.Grey;
 
                 // handle collisions
@@ -134,13 +137,35 @@ namespace asteroids {
 
                     debugColour = Colour.Orange;
 
+                    // destroy the player
+                    // if (b.GetType() == typeof(player) &&
+                    //     c.GetType() == typeof(asteroid) &&
+                    //     ply != null) {
+                    //     ply.destroy();
+                    //     ply = null;
+                    // }
+
                     // delete torpedoes;
-                    if (a.GetType() == typeof(torpedo)) {
-                        bodies.RemoveAt(j);
-                        break;
-                    } else if (b.GetType() == typeof(torpedo)) {
-                        bodies.RemoveAt(k);
-                        continue;
+                    if (a.GetType() == typeof(torpedo)) {                        
+                        if (b.GetType() == typeof(asteroid)) {
+                            // larger asteroids break into smaller ones
+                            Global.sfx["bang" + randint(1, 3).ToString()].play();
+                            
+                            if (((asteroid)b).size == asteroid.enumSize.large) {
+                                int numNewAsteroids = 2;
+
+                                for (int l = 0; l < numNewAsteroids; l++) {
+                                    asteroid newAsteroid = new asteroid(asteroid.enumSize.small);
+                                    newAsteroid.Position = a.Position + randvec2(0, a.BoundingCircleRadius);
+                                    bodies.Add(newAsteroid);
+                                }
+                            }
+
+                            bodies.RemoveAt(j--);
+                            bodies.RemoveAt(k--);
+
+                            break;
+                        }
                     }
                 }
 
@@ -148,6 +173,13 @@ namespace asteroids {
                 
                 if (b == ply.ship) { continue; }
                 b.update(delta);
+
+                if (b.GetType() == typeof(torpedo)) {
+                    torpedo t = (torpedo)b;
+                    if ((DateTime.Now - t.SpawnTime).TotalSeconds > t.LifeTime) {
+                        bodies.RemoveAt(k);
+                    }
+                }
             }
 
             totalUpdateTime += (float)(DateTime.Now - thisUpdateTime).TotalMilliseconds;

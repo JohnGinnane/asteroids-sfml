@@ -3,7 +3,14 @@ using SFML.Graphics;
 
 namespace asteroids {
     public class torpedo : circlebody {
+        private DateTime spawnTime;
+        public DateTime SpawnTime { get { return spawnTime; } }
+
+        private float lifeTime;
+        public float LifeTime { get { return lifeTime; } }
         public torpedo(Vector2f position, Vector2f velocity) {
+            this.spawnTime = DateTime.Now;
+            this.lifeTime = 2f; // 2 seconds
             this.Radius = 2f;
             this.Shape = new CircleShape(this.Radius);
             this.Position = position;

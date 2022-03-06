@@ -28,7 +28,6 @@ namespace asteroids {
             this.ship.Position = new Vector2f(400, 400);
             this.ship.Drag = 0.5f;
             this.ship.AngularDrag = 4f;
-            this.ship.Debug = true;
         }
 
         public torpedo? fire() {
@@ -42,11 +41,15 @@ namespace asteroids {
             // from from in front of the ship
             Vector2f firePos = this.ship.Position;
             firePos += vector2f(this.ship.Angle) * (this.ship.BoundingCircleRadius + 2f);
-            Vector2f fireVel = this.ship.Velocity * 2f;
+            Vector2f fireVel = this.ship.Velocity;
             fireVel += vector2f(this.ship.Angle) * this.maxMoveSpeed;
 
             torpedo t = new torpedo(firePos, fireVel);
             return t;
+        }
+
+        public void destroy() {
+
         }
 
         public void update(float delta) {

@@ -17,7 +17,7 @@ namespace asteroids {
 
         public static int randint(int min, int max) {
             Random r = new Random((int)(DateTime.Now.Ticks%Int32.MaxValue));
-            return (int)(r.NextDouble() * (max - min));
+            return min + (int)(r.NextDouble() * (max - min));
         }
 
         public static float randfloat(float min, float max) {
