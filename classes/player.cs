@@ -4,14 +4,14 @@ using static asteroids.util;
 
 namespace asteroids {
     public class player {
-        private polybody ship;
+        public polybody ship;
 
         // private float fireCooldown = 0.25f;
         // private float lastFire = 0f;
-        private float maxMoveSpeed = 200f;
+        private float maxMoveSpeed = 400f;
         private float plyMoveSpeed = 200f;
-        private float maxTurnSpeed = 20f;
-        private float plyTurnSpeed = 29f; // radians
+        private float maxTurnSpeed = 50f;
+        private float plyTurnSpeed = 25f;
 
         public player() {
             float offsetx = 0f;
@@ -27,10 +27,10 @@ namespace asteroids {
             this.ship = new polybody(rotate(va, (float)Math.PI/2f));
             this.ship.Position = new Vector2f(400, 400);
             this.ship.Drag = 0.5f;
-            this.ship.AngularDrag = 0.99f;
+            this.ship.AngularDrag = 4f;
             this.ship.Debug = true;
         }
-        
+
         public void update(float delta) {
             
             float plySpeed = magnitude(ship.Velocity);

@@ -1,8 +1,8 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using static asteroids.circlebody;
 using static asteroids.util;
+using static asteroids.collision;
 
 namespace asteroids {
     static class Program {
@@ -28,6 +28,8 @@ namespace asteroids {
         uint updatesAcc;
         DateTime updateLastTime;
         float updatesPerSecond;
+        float totalUpdateTime;
+        float avgUpdateTime;
 
         uint framesAcc;
         DateTime frameLastTime;
@@ -36,10 +38,19 @@ namespace asteroids {
         player ply;
         List<asteroid> listAsteroids;
 
+        List<body?> bodies;
+
         public asteroids() {
+            
+            // using these lists makes it easier
+            // to update and draw all items            
+            bodies = new List<body?>();
+
             updateLastTime = DateTime.Now;
             frameLastTime = DateTime.Now;
+
             ply = new player();
+            bodies.Add(ply.ship);
             
             window = new RenderWindow(new VideoMode((uint)Global.ScreenSize.X, (uint)Global.ScreenSize.Y),
                                       "Asteroids",
@@ -51,13 +62,15 @@ namespace asteroids {
             window.Closed += window_CloseWindow;
             listAsteroids = new List<asteroid>();
             
-            for (int i = 5; i > 0; i--) {
+            for (int i = 12; i > 0; i--) {
                 asteroid a= new asteroid();
                 a.Position = randvec2(0, Global.ScreenSize.X, 0, Global.ScreenSize.Y);
                 a.Velocity = randvec2(-10, 10) * 3f;
                 a.Debug = true;
                 a.Drag = 0f;
                 listAsteroids.Add(a);
+
+                bodies.Add(a);
             }
         }
 
@@ -71,8 +84,11 @@ namespace asteroids {
         }
 
         private void update(float delta) {
+            DateTime thisUpdateTime = DateTime.Now;
             updatesAcc++;
             if ((DateTime.Now - updateLastTime).TotalMilliseconds >= 1000) {
+                if (updatesAcc != 0) { avgUpdateTime = totalUpdateTime / updatesAcc; }
+                totalUpdateTime = 0;
                 updatesPerSecond = updatesAcc;
                 updateLastTime = DateTime.Now;
                 updatesAcc = 0;
@@ -83,10 +99,36 @@ namespace asteroids {
             if (Global.Keyboard["escape"].isPressed) {
                 window.Close();
             }
-            
+
+            // player is handled separately because if inputs
             ply.update(delta);
 
-            foreach (asteroid a in listAsteroids) { a.update(delta); }
+            foreach (body? b in bodies) {
+                if (b == null) { continue; }
+                Color debugColour = new Color(100, 100, 100);
+
+                // // find collisions
+                foreach (body? a in bodies) {
+                    if (a == null) { continue; }
+                    if (a == b) { continue; }
+
+                    collision? c = collide(a, b);
+
+                    if (c != null) {
+                        debugColour = Color.Red;
+                    } else {
+                        continue;
+                    }
+                }
+
+                b.DebugColour = debugColour;
+
+                if (b == ply.ship) { continue; }
+
+                b.update(delta);
+            }
+
+            totalUpdateTime += (float)(DateTime.Now - thisUpdateTime).TotalMilliseconds;
         }
 
         private void draw() {
@@ -99,9 +141,10 @@ namespace asteroids {
 
             window.Clear();
 
-            ply.draw(window);
-
-            foreach (asteroid a in listAsteroids) { a.draw(window); }
+            foreach (body? b in bodies) {
+                if (b == null) { continue; }
+                b.draw(window);
+            }
 
             window.Display();
         }
@@ -118,7 +161,10 @@ namespace asteroids {
                     window.DispatchEvents();
                     update(delta);
 
-                    window.SetTitle(String.Format("Asteroids (FPS: {0}, UPS: {1})", framesPerSecond.ToString(), updatesPerSecond.ToString()));
+                    window.SetTitle(String.Format("Asteroids (FPS: {0}, UPS: {1} (avg time: {2}))",
+                                    framesPerSecond.ToString(),
+                                    updatesPerSecond.ToString(),
+                                    avgUpdateTime.ToString()));
                 }
 
                 draw();

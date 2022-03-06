@@ -11,6 +11,12 @@ namespace asteroids {
             set { debug = value; }
         }
 
+        private Color debugColour;
+        public Color DebugColour {
+            get { return debugColour; }
+            set { debugColour = value; }
+        }
+
         // Movement properties
         private Vector2f position;
         public Vector2f Position {
@@ -56,6 +62,11 @@ namespace asteroids {
             get { return bounciness; }
             set { bounciness = value; }
         }
+
+        private float boundingCircleRadius;
+        public float BoundingCircleRadius {
+            get { return boundingCircleRadius; }
+        }
         
         // Drawing properties
         internal Drawable? shape;
@@ -65,9 +76,11 @@ namespace asteroids {
                 if (value == null) { 
                     this.shape = null;
                     this.shapeType = null;
+                    this.boundingCircleRadius = 0f;
                 } else {
                     this.shape = value;
                     this.shapeType = value.GetType();
+                    this.boundingCircleRadius = calculateBoundingCircleRadius();
                 }
             }
         }
@@ -94,7 +107,7 @@ namespace asteroids {
             }
         }
 
-        private Color outlineColour;
+        private Color outlineColour = Color.White;
         public Color OutlineColour {
             get { return outlineColour; }
             set {
@@ -132,6 +145,35 @@ namespace asteroids {
 #endregion
 
 #region "Methods"
+        private float calculateBoundingCircleRadius() {
+            if (this.GetType() == typeof(circlebody)) {
+                return ((circlebody)this).Radius;
+            }
+
+            if (this.GetType() == typeof(rectbody)) {
+                return magnitude(((rectbody)this).Size)/2f;
+            }
+            
+            // for polygonal shapes iterate over all points
+            // and use the furthest point
+            if (this.GetType() == typeof(polybody) ||
+                this.GetType().IsSubclassOf(typeof(polybody))) {
+                float furthestPoint = 0f;
+                VertexArray? va = (VertexArray?)((polybody)this).Shape;
+                if (va == null) { return 0f; }
+
+                for (uint i = 0; i < va.VertexCount; i++) {
+                    float curDist = magnitude(this.Position - va[i].Position);
+
+                    if (curDist > furthestPoint) { furthestPoint = curDist; }
+                }
+
+                return furthestPoint;
+            }
+            
+            return 0f;
+        }
+
         public void SetPosition(Vector2i position) {
             this.Position = (Vector2f)position;
         }
@@ -175,7 +217,9 @@ namespace asteroids {
         public virtual void update(float delta) {
             if (!isStatic) {
                 this.Position += this.Velocity * delta;
-                this.Velocity *= (1f - this.Drag * delta);
+                if (this.Drag != 0) {
+                    this.Velocity *= (1f - this.Drag * delta);
+                }
             }
         }
 
@@ -189,10 +233,19 @@ namespace asteroids {
             }
 
             if (this.Debug) {
+                // draw direction we are facing
                 VertexArray va = new VertexArray(PrimitiveType.Lines, 2);
-                va[0] = new Vertex(this.Position, Color.White);
-                va[1] = new Vertex(this.Position + this.Velocity, Color.White);
+                va[0] = new Vertex(this.Position, this.DebugColour);
+                va[1] = new Vertex(this.Position + this.Velocity, this.DebugColour);
                 window.Draw(va, RenderStates.Default);
+
+                // TODO: draw bounding circle
+                CircleShape cs = new CircleShape(this.BoundingCircleRadius);
+                cs.Position = this.Position - new Vector2f(this.BoundingCircleRadius, this.BoundingCircleRadius);
+                cs.FillColor = Color.Transparent;
+                cs.OutlineThickness = 1f;
+                cs.OutlineColor = this.DebugColour;
+                window.Draw(cs);
             }
         }
 

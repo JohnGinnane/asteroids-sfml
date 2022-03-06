@@ -33,9 +33,10 @@ namespace asteroids {
                 point.X = (float)Math.Sin(Math.PI/180f * 120 * i) * radius;
                 point.Y = (float)Math.Cos(Math.PI/180f * 120 * i) * radius;
 
-                va[i] = new Vertex(this.Position + point, Color.White);
+                va[i] = new Vertex(this.Position + point);
             }
             this.Shape = va;
+            this.OutlineColour = Color.White;
         }
 
         public polybody(VertexArray va) {
@@ -46,7 +47,9 @@ namespace asteroids {
         {
             if (!isStatic) {
                 this.Angle += this.AnglularVelocity * delta;
-                this.AnglularVelocity *= (1f - this.AngularDrag * delta);
+                if (this.AngularDrag != 0) {
+                    this.AnglularVelocity *= (1f - this.AngularDrag * delta);
+                }
             }
 
             base.update(delta);
@@ -60,7 +63,7 @@ namespace asteroids {
             VertexArray va = new VertexArray(ogva);
             for (uint i = 0; i < va.VertexCount; i++) {
                 if (angle == 0) {
-                    va[i] = new Vertex(this.Position + ogva[i].Position, ogva[i].Color);
+                    va[i] = new Vertex(this.Position + ogva[i].Position);
                 } else {
                     float s = (float)Math.Sin(this.Angle);
                     float c = (float)Math.Cos(this.Angle);
@@ -68,7 +71,7 @@ namespace asteroids {
                     float x2 = va[i].Position.X * c - va[i].Position.Y * s;
                     float y2 = va[i].Position.X * s + va[i].Position.Y * c;
 
-                    va[i] = new Vertex(this.Position + new Vector2f(x2, y2), va[i].Color);
+                    va[i] = new Vertex(this.Position + new Vector2f(x2, y2), this.OutlineColour);
                 }
             }
             
