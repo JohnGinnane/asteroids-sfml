@@ -6,21 +6,42 @@ namespace asteroids {
     public class asteroid : polybody {
         public enum enumSize {
             small,
+            medium,
             large
         }
+
+        private int points;
+        public int Points { get { return points; } }
 
         public enumSize size;
 
         public asteroid(enumSize size) {
             this.noCollideType = typeof(asteroid);
-            uint numPoints = 12;
-            float radius = 20f;
+            uint numPoints = 8;
+            float radius = 10f;
+            float velMulti = 2f;
             this.size = size;
 
-            if (size == enumSize.small)
-            {
-                numPoints = 8;
-                radius = 10f;
+            switch (size) {
+                case enumSize.small:
+                    numPoints = 8;
+                    radius = 8f;
+                    velMulti = 2f;
+                    this.points = 100;
+                    break;
+                case enumSize.large:
+                    numPoints = 12;
+                    radius = 16f;
+                    velMulti = 1f;
+                    this.points = 20;
+                    break;
+                case enumSize.medium:
+                default:
+                    numPoints = 10;
+                    radius = 12f;
+                    velMulti = 1.5f;
+                    this.points = 50;
+                    break;
             }
 
             float angOffset = (float)Math.PI/180f * (360f / numPoints);
@@ -40,11 +61,7 @@ namespace asteroids {
 
             this.Shape = va;
             this.Drag = 0f;
-            this.Velocity = randvec2(-80, 100, -80, 100);
-
-            if (size == enumSize.small) {
-                this.Velocity *= 2f;
-            }
+            this.Velocity = randvec2(-1, 1) * randfloat(40, 60) * velMulti;
         }
 
         public override void update(float delta)

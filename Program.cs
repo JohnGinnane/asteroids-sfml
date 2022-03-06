@@ -42,6 +42,16 @@ namespace asteroids {
         List<body?> bodies;
         DateTime playerSpawnTime;
 
+        private Text pointsText;
+        int totalPoints;
+        int TotalPoints {
+            get { return totalPoints; }
+            set {
+                totalPoints = value;
+                pointsText.DisplayedString = value.ToString();
+            }
+        }
+
         public asteroids() {            
             // using these lists makes it easier
             // to update and draw all items            
@@ -61,19 +71,25 @@ namespace asteroids {
             window.Closed += window_CloseWindow;
             listAsteroids = new List<asteroid>();
             
-            for (int i = 12; i > 0; i--) {
+            for (int i = 6; i > 0; i--) {
                 asteroid a = new asteroid(asteroid.enumSize.large);
                 a.Position = randvec2(0, Global.ScreenSize.X, 0, Global.ScreenSize.Y);
                 listAsteroids.Add(a);
                 bodies.Add(a);
             }
 
+            totalPoints = 0;
+            pointsText = new Text(this.TotalPoints.ToString(), Fonts.Hyperspace);
+            pointsText.CharacterSize = 32;
+            pointsText.FillColor = Color.White;
+            pointsText.Position = new Vector2f(10, 10);
+
             // Load sounds
-            Global.sfx.Add("fire", new sound("fire", "sound/fire.wav"));
-            Global.sfx.Add("thrust", new sound("thrust", "sound/thrust.wav"));
-            Global.sfx.Add("bang1", new sound("bang1", "sound/bangSmall.wav"));
-            Global.sfx.Add("bang2", new sound("bang2", "sound/bangMedium.wav"));
-            Global.sfx.Add("bang3", new sound("bang3", "sound/bangLarge.wav"));
+            Global.sfx.Add("fire",       new sound("fire",       "sound/fire.wav"));
+            Global.sfx.Add("thrust",     new sound("thrust",     "sound/thrust.wav"));
+            Global.sfx.Add("bangSmall",  new sound("bangSmall",  "sound/bangSmall.wav"));
+            Global.sfx.Add("bangMedium", new sound("bangMedium", "sound/bangMedium.wav"));
+            Global.sfx.Add("bangLarge",  new sound("bang3",      "sound/bangLarge.wav"));
         }
 
         private void window_CloseWindow(object? sender, System.EventArgs? e) {
@@ -143,7 +159,7 @@ namespace asteroids {
                         // if the player is hit by an asteroid then destroy the ship
                         if (ply != null) {
                             if (a == ply.ship) {
-                                Global.sfx["bang" + randint(1, 3).ToString()].play();
+                                Global.sfx["bangMedium"].play();
                                 bodies.RemoveAt(j--);
                                 ply = null;
                                 playerSpawnTime = DateTime.Now.AddSeconds(3);
@@ -153,21 +169,43 @@ namespace asteroids {
 
                         // if torpedo hits asteroid then destroy it                     
                         if (a.GetType() == typeof(torpedo)) {
-                            // larger asteroids break into smaller ones
-                            Global.sfx["bang" + randint(1, 3).ToString()].play();
+                            asteroid ast = (asteroid)b;
+                            TotalPoints += ast.Points;
 
-                            if (((asteroid)b).size == asteroid.enumSize.large) {
+                            // larger asteroids break into smaller ones
+                            string bangSound = "bangMedium";
+                            
+                            switch (((asteroid)b).size) {
+                                case asteroid.enumSize.small:
+                                    bangSound = "bangSmall";
+                                    break;
+                                case asteroid.enumSize.medium:
+                                    bangSound = "bangMedium";
+                                    break;
+                                case asteroid.enumSize.large:
+                                    bangSound = "bangLarge";
+                                    break;
+                            }
+
+                            Global.sfx[bangSound].play();
+
+                            if (ast.size > asteroid.enumSize.small) {
                                 int numNewAsteroids = 2;
 
                                 for (int l = 0; l < numNewAsteroids; l++) {
-                                    asteroid newAsteroid = new asteroid(asteroid.enumSize.small);
-                                    newAsteroid.Position = a.Position + randvec2(0, a.BoundingCircleRadius);
+                                    asteroid newAsteroid = new asteroid((asteroid.enumSize)((int)ast.size)-1);
+                                    newAsteroid.Position = a.Position + randvec2(-a.BoundingCircleRadius, a.BoundingCircleRadius);
                                     bodies.Add(newAsteroid);
                                 }
                             }
 
-                            bodies.RemoveAt(j--);
-                            bodies.RemoveAt(k--);
+                            if (k > j) {
+                                bodies.RemoveAt(k--);
+                                bodies.RemoveAt(j--);
+                            } else {
+                                bodies.RemoveAt(j--);
+                                bodies.RemoveAt(k--);
+                            }
 
                             break;
                         }
@@ -203,6 +241,8 @@ namespace asteroids {
                 if (b == null) { continue; }
                 b.draw(window);
             }
+
+            window.Draw(pointsText);
 
             window.Display();
         }

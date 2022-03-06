@@ -8,27 +8,28 @@ namespace asteroids {
 
         private float fireCooldown = 250f;
         DateTime lastFire;
-        private float maxMoveSpeed = 400f;
+        private float maxMoveSpeed = 600f;
         private float plyMoveSpeed = 200f;
-        private float maxTurnSpeed = 50f;
+        private float maxTurnSpeed = 75f;
         private float plyTurnSpeed = 25f;
+        private float torpedoSpeed = 400f;
 
         public player() {
             float offsetx = 0f;
             float offsety = 2f;
+            float scale = 0.5f;
 
             VertexArray va = new VertexArray(PrimitiveType.LineStrip, 5);
-            va[0] = new Vertex(new Vector2f(offsetx,      offsety - 24), Color.White);
-            va[1] = new Vertex(new Vector2f(offsetx + 18, offsety + 24), Color.White);
-            va[2] = new Vertex(new Vector2f(offsetx,      offsety + 18), Color.White);
-            va[3] = new Vertex(new Vector2f(offsetx - 18, offsety + 24), Color.White);
-            va[4] = new Vertex(new Vector2f(offsetx,      offsety - 24), Color.White);
+            va[0] = new Vertex(new Vector2f(offsetx,      offsety - 24) * scale, Color.White);
+            va[1] = new Vertex(new Vector2f(offsetx + 18, offsety + 24) * scale, Color.White);
+            va[2] = new Vertex(new Vector2f(offsetx,      offsety + 18) * scale, Color.White);
+            va[3] = new Vertex(new Vector2f(offsetx - 18, offsety + 24) * scale, Color.White);
+            va[4] = new Vertex(new Vector2f(offsetx,      offsety - 24) * scale, Color.White);
             
             this.ship = new polybody(rotate(va, (float)Math.PI/2f));
-            this.ship.Position = new Vector2f(400, 400);
-            this.ship.Drag = 0.5f;
+            this.ship.Position = Global.ScreenSize / 2f;
+            this.ship.Drag = 0.2f;
             this.ship.AngularDrag = 4f;
-            this.ship.Debug = true;
         }
 
         public torpedo? fire() {
@@ -43,16 +44,12 @@ namespace asteroids {
             Vector2f firePos = this.ship.Position;
             firePos += vector2f(this.ship.Angle) * (this.ship.BoundingCircleRadius + 2f);
             Vector2f fireVel = this.ship.Velocity;
-            fireVel += vector2f(this.ship.Angle) * this.maxMoveSpeed;
+            fireVel += vector2f(this.ship.Angle) * this.torpedoSpeed;
 
             torpedo t = new torpedo(firePos, fireVel);
             return t;
         }
-
-        public void destroy() {
-
-        }
-
+        
         public void update(float delta) {
             
             float plySpeed = magnitude(ship.Velocity);
