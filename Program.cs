@@ -1,4 +1,5 @@
 ﻿using SFML.Graphics;
+using SFML.Audio;
 using SFML.System;
 using SFML.Window;
 using static asteroids.util;
@@ -72,15 +73,14 @@ namespace asteroids {
 
                 bodies.Add(a);
             }
+
+            Global.sfx.Add("fire", new sound("fire", "sound/fire.wav"));
+            Global.sfx.Add("thrust", new sound("thrust", "sound/thrust.wav"));
         }
 
         private void window_CloseWindow(object? sender, System.EventArgs? e) {
             if (sender == null) { return; }
             ((RenderWindow)sender).Close();
-        }
-
-        private void input() {
-            Global.Keyboard.update();
         }
 
         private void update(float delta) {
@@ -100,12 +100,24 @@ namespace asteroids {
                 window.Close();
             }
 
+            if (Global.Keyboard["space"].justPressed) {
+                ply.fire();
+            }
+
+            if (Global.Keyboard["w"].justPressed) {
+                Global.sfx["thrust"].play(true);
+            }
+
+            if (Global.Keyboard["w"].justReleased) {
+                Global.sfx["thrust"].stop();
+            }
+
             // player is handled separately because if inputs
             ply.update(delta);
 
             foreach (body? b in bodies) {
                 if (b == null) { continue; }
-                Color debugColour = new Color(100, 100, 100);
+                Color debugColour = Colour.Grey;
 
                 // // find collisions
                 foreach (body? a in bodies) {
@@ -115,7 +127,7 @@ namespace asteroids {
                     collision? c = collide(a, b);
 
                     if (c != null) {
-                        debugColour = Color.Red;
+                        debugColour = Colour.Orange;
                     } else {
                         continue;
                     }

@@ -6,8 +6,8 @@ namespace asteroids {
     public class player {
         public polybody ship;
 
-        // private float fireCooldown = 0.25f;
-        // private float lastFire = 0f;
+        private float fireCooldown = 250f;
+        DateTime lastFire;
         private float maxMoveSpeed = 400f;
         private float plyMoveSpeed = 200f;
         private float maxTurnSpeed = 50f;
@@ -29,6 +29,15 @@ namespace asteroids {
             this.ship.Drag = 0.5f;
             this.ship.AngularDrag = 4f;
             this.ship.Debug = true;
+        }
+
+        public void fire() {
+            if ((DateTime.Now - lastFire).TotalMilliseconds < fireCooldown) {
+                return;
+            }
+
+            lastFire = DateTime.Now;
+            Global.sfx["fire"].play();
         }
 
         public void update(float delta) {

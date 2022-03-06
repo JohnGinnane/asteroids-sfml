@@ -13,6 +13,8 @@ namespace asteroids {
         public static keyboard Keyboard {
             get { return kb; }
         }
+
+        public static Dictionary<string, sound> sfx = new Dictionary<string, sound>();
     }
 
 }
