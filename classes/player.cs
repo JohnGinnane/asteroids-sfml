@@ -28,6 +28,7 @@ namespace asteroids {
             this.ship.Position = new Vector2f(400, 400);
             this.ship.Drag = 0.5f;
             this.ship.AngularDrag = 4f;
+            this.ship.Debug = true;
         }
 
         public torpedo? fire() {

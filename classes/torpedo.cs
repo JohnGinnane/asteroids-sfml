@@ -6,11 +6,11 @@ namespace asteroids {
         private DateTime spawnTime;
         public DateTime SpawnTime { get { return spawnTime; } }
 
-        private float lifeTime;
-        public float LifeTime { get { return lifeTime; } }
+        private DateTime destroyTime;
+        public DateTime DestroyTime { get { return destroyTime; } }
         public torpedo(Vector2f position, Vector2f velocity) {
             this.spawnTime = DateTime.Now;
-            this.lifeTime = 2f; // 2 seconds
+            this.destroyTime = DateTime.Now.AddSeconds(2);
             this.Radius = 2f;
             this.Shape = new CircleShape(this.Radius);
             this.Position = position;

@@ -40,19 +40,17 @@ namespace asteroids {
         List<asteroid> listAsteroids;
 
         List<body?> bodies;
+        DateTime playerSpawnTime;
 
-        public asteroids() {
-            
+        public asteroids() {            
             // using these lists makes it easier
             // to update and draw all items            
             bodies = new List<body?>();
 
             updateLastTime = DateTime.Now;
             frameLastTime = DateTime.Now;
+            playerSpawnTime = DateTime.Now.AddSeconds(1);
 
-            ply = new player();
-            bodies.Add(ply.ship);
-            
             window = new RenderWindow(new VideoMode((uint)Global.ScreenSize.X, (uint)Global.ScreenSize.Y),
                                       "Asteroids",
                                       Styles.Default);
@@ -100,6 +98,15 @@ namespace asteroids {
                 window.Close();
             }
 
+            if (ply == null) {
+                if (DateTime.Now > playerSpawnTime) {
+                    ply = new player();
+                    bodies.Add(ply.ship);
+                }
+            } else {
+                ply.update(delta);
+            }
+
             if (Global.Keyboard["space"].isPressed && ply != null) {
                 torpedo? newTorpedo = ply.fire();
 
@@ -112,11 +119,6 @@ namespace asteroids {
 
             if (Global.Keyboard["w"].justReleased) {
                 Global.sfx["thrust"].stop();
-            }
-
-            // player is handled separately because of inputs
-            if (ply != null) {
-                ply.update(delta);
             }
 
             for (int k = bodies.Count - 1; k >= 0; k--) {
@@ -137,20 +139,23 @@ namespace asteroids {
 
                     debugColour = Colour.Orange;
 
-                    // destroy the player
-                    // if (b.GetType() == typeof(player) &&
-                    //     c.GetType() == typeof(asteroid) &&
-                    //     ply != null) {
-                    //     ply.destroy();
-                    //     ply = null;
-                    // }
+                    if (b.GetType() == typeof(asteroid)) {
+                        // if the player is hit by an asteroid then destroy the ship
+                        if (ply != null) {
+                            if (a == ply.ship) {
+                                Global.sfx["bang" + randint(1, 3).ToString()].play();
+                                bodies.RemoveAt(j--);
+                                ply = null;
+                                playerSpawnTime = DateTime.Now.AddSeconds(3);
+                                break;
+                            }
+                        }
 
-                    // delete torpedoes;
-                    if (a.GetType() == typeof(torpedo)) {                        
-                        if (b.GetType() == typeof(asteroid)) {
+                        // if torpedo hits asteroid then destroy it                     
+                        if (a.GetType() == typeof(torpedo)) {
                             // larger asteroids break into smaller ones
                             Global.sfx["bang" + randint(1, 3).ToString()].play();
-                            
+
                             if (((asteroid)b).size == asteroid.enumSize.large) {
                                 int numNewAsteroids = 2;
 
@@ -171,12 +176,11 @@ namespace asteroids {
 
                 b.DebugColour = debugColour;
                 
-                if (b == ply.ship) { continue; }
                 b.update(delta);
 
                 if (b.GetType() == typeof(torpedo)) {
                     torpedo t = (torpedo)b;
-                    if ((DateTime.Now - t.SpawnTime).TotalSeconds > t.LifeTime) {
+                    if (DateTime.Now > t.DestroyTime) {
                         bodies.RemoveAt(k);
                     }
                 }
