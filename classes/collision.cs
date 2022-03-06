@@ -15,6 +15,10 @@ namespace asteroids {
         public static collision? collide(body a, body b) {
             // check if the bounding circle overlaps
             // otherwise ignore
+            if (a.NoCollideType == b.GetType() ||
+                b.NoCollideType == a.GetType()) {
+                return null;
+            }
 
             // this is "cheaper" than the entire distance check 
             float possq = (float)(Math.Pow(a.Position.X - b.Position.X, 2) + Math.Pow(a.Position.Y - b.Position.Y, 2));

@@ -6,6 +6,7 @@ namespace asteroids {
     public class asteroid : polybody {
         
         public asteroid() {
+            this.noCollideType = typeof(asteroid);
             uint numPoints = 12;
             float angOffset = (float)Math.PI/180f * (360f / numPoints);
             float radius = 20f;
@@ -34,6 +35,12 @@ namespace asteroids {
             if (this.Position.X > Global.ScreenSize.X) { this.SetXPosition(0); }
             if (this.Position.Y < 0) { this.SetYPosition(Global.ScreenSize.Y); }
             if (this.Position.Y > Global.ScreenSize.Y) { this.SetYPosition(0); }
+        }
+
+        // if the asteroid is hit by a torpedo it should break up
+        public override void resolve(collision c)
+        {
+            base.resolve(c);
         }
     }
 }

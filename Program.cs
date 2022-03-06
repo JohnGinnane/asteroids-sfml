@@ -101,7 +101,9 @@ namespace asteroids {
             }
 
             if (Global.Keyboard["space"].justPressed) {
-                ply.fire();
+                torpedo? newTorpedo = ply.fire();
+
+                if (newTorpedo != null) { bodies.Add(newTorpedo); }
             }
 
             if (Global.Keyboard["w"].justPressed) {
@@ -112,31 +114,39 @@ namespace asteroids {
                 Global.sfx["thrust"].stop();
             }
 
-            // player is handled separately because if inputs
+            // player is handled separately because of inputs
             ply.update(delta);
 
-            foreach (body? b in bodies) {
+            for (int k = bodies.Count - 1; k >= 0; k--) {
+                body? b = bodies[k];
                 if (b == null) { continue; }
                 Color debugColour = Colour.Grey;
 
-                // // find collisions
-                foreach (body? a in bodies) {
+                // handle collisions
+                for (int j = bodies.Count - 1; j >= 0; j--) {
+                    if (k == j) { continue; }
+                    body? a = bodies[j];
                     if (a == null) { continue; }
-                    if (a == b) { continue; }
 
                     collision? c = collide(a, b);
 
-                    if (c != null) {
-                        debugColour = Colour.Orange;
-                    } else {
+                    if (c == null) { continue; }
+
+                    debugColour = Colour.Orange;
+
+                    // delete torpedoes;
+                    if (a.GetType() == typeof(torpedo)) {
+                        bodies.RemoveAt(j);
+                        break;
+                    } else if (b.GetType() == typeof(torpedo)) {
+                        bodies.RemoveAt(k);
                         continue;
                     }
                 }
 
                 b.DebugColour = debugColour;
-
+                
                 if (b == ply.ship) { continue; }
-
                 b.update(delta);
             }
 

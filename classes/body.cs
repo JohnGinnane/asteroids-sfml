@@ -67,6 +67,11 @@ namespace asteroids {
         public float BoundingCircleRadius {
             get { return boundingCircleRadius; }
         }
+
+        internal Type? noCollideType;
+        public Type? NoCollideType {
+            get { return noCollideType; }
+        }
         
         // Drawing properties
         internal Drawable? shape;
@@ -221,6 +226,10 @@ namespace asteroids {
                     this.Velocity *= (1f - this.Drag * delta);
                 }
             }
+        }
+
+        public virtual void resolve(collision c) {
+            
         }
 
         public virtual void draw(RenderWindow window) { 

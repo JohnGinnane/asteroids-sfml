@@ -31,13 +31,22 @@ namespace asteroids {
             this.ship.Debug = true;
         }
 
-        public void fire() {
+        public torpedo? fire() {
             if ((DateTime.Now - lastFire).TotalMilliseconds < fireCooldown) {
-                return;
+                return null;
             }
 
             lastFire = DateTime.Now;
             Global.sfx["fire"].play();
+
+            // from from in front of the ship
+            Vector2f firePos = this.ship.Position;
+            firePos += vector2f(this.ship.Angle) * (this.ship.BoundingCircleRadius + 2f);
+            Vector2f fireVel = this.ship.Velocity * 2f;
+            fireVel += vector2f(this.ship.Angle) * this.maxMoveSpeed;
+
+            torpedo t = new torpedo(firePos, fireVel);
+            return t;
         }
 
         public void update(float delta) {
