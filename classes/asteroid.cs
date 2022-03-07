@@ -31,14 +31,14 @@ namespace asteroids {
                     break;
                 case enumSize.large:
                     numPoints = 12;
-                    radius = 16f;
+                    radius = 20f;
                     velMulti = 1f;
                     this.points = 20;
                     break;
                 case enumSize.medium:
                 default:
                     numPoints = 10;
-                    radius = 12f;
+                    radius = 14f;
                     velMulti = 1.5f;
                     this.points = 50;
                     break;
@@ -61,7 +61,7 @@ namespace asteroids {
 
             this.Shape = va;
             this.Drag = 0f;
-            this.Velocity = randvec2(-1, 1) * randfloat(40, 60) * velMulti;
+            this.Velocity = randvec2(-1, 1) * randfloat(60, 80) * velMulti;
         }
 
         public override void update(float delta)
@@ -100,6 +100,29 @@ namespace asteroids {
                     newAsteroid.Position = this.Position + randvec2(-this.BoundingCircleRadius, this.BoundingCircleRadius);
                     newAsteroids.Add(newAsteroid);
                 }
+            }
+
+            return newAsteroids;
+        }
+
+        public static List<asteroid> spawnAsteroids(int numAsteroids) {
+            List<asteroid> newAsteroids = new List<asteroid>();
+
+            // Spawn them on the edge of the screen
+            for (int i = numAsteroids; i > 0; i--) {
+                asteroid a = new asteroid(enumSize.large);
+                int side = randint(0, 1);
+                if (side == 0) {
+                    a.Position = new Vector2f(randint(0, 1) * Global.ScreenSize.X,
+                                              randfloat(0, Global.ScreenSize.Y));
+                    Console.WriteLine("side 0");
+                } else {
+                    a.Position = new Vector2f(randfloat(0, Global.ScreenSize.X),
+                                              randint(0, 1) * Global.ScreenSize.Y);
+                    Console.WriteLine("side 1");
+                }
+                
+                newAsteroids.Add(a);
             }
 
             return newAsteroids;

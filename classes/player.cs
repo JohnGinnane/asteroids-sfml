@@ -12,7 +12,7 @@ namespace asteroids {
         private float plyMoveSpeed = 200f;
         private float maxTurnSpeed = 100f;
         private float plyTurnSpeed = 50f;
-        private float torpedoSpeed = 400f;
+        private float torpedoSpeed = 100f;
 
         public player() {
             float offsetx = 0f;

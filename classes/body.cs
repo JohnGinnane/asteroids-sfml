@@ -51,6 +51,11 @@ namespace asteroids {
         public bool isStatic = false;
 
         // Collision properties
+        private bool checkCollisions = true;
+        public bool CheckCollisions {
+            get { return checkCollisions; }
+            set { checkCollisions = value; }
+        }
         private float mass = 100f;
         public float Mass {
             get { return mass; }
@@ -260,7 +265,9 @@ namespace asteroids {
         }
 
         public bool collide(body otherbody) {
+            if (!this.CheckCollisions) { return false; }
             if (otherbody == null) { return false; }
+            if (!otherbody.CheckCollisions) { return false; }
             if (this.isStatic) { return false; } // our body is static, we don't care about collisions right now
             
             if (otherbody.GetType() == typeof(circlebody) &&
