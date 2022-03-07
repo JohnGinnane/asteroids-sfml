@@ -35,6 +35,8 @@ namespace asteroids {
                     float velMag = magnitude(b.Velocity) / 2f;
                     newP.Velocity = b.Velocity / 2f + randvec2(-velMag, velMag);
                     newP.Position = b.Position;
+                    newP.AnglularVelocity = randfloat(-1, 1);
+                    newP.AngularDrag = 0f;
                     
                     newParticles.Add(newP);
                 }
