@@ -10,8 +10,8 @@ namespace asteroids {
         DateTime lastFire;
         private float maxMoveSpeed = 600f;
         private float plyMoveSpeed = 200f;
-        private float maxTurnSpeed = 75f;
-        private float plyTurnSpeed = 25f;
+        private float maxTurnSpeed = 100f;
+        private float plyTurnSpeed = 50f;
         private float torpedoSpeed = 400f;
 
         public player() {
@@ -29,7 +29,7 @@ namespace asteroids {
             this.ship = new polybody(rotate(va, (float)Math.PI/2f));
             this.ship.Position = Global.ScreenSize / 2f;
             this.ship.Drag = 0.2f;
-            this.ship.AngularDrag = 4f;
+            this.ship.AngularDrag = 8f;
         }
 
         public torpedo? fire() {
@@ -49,7 +49,7 @@ namespace asteroids {
             torpedo t = new torpedo(firePos, fireVel);
             return t;
         }
-        
+
         public void update(float delta) {
             
             float plySpeed = magnitude(ship.Velocity);

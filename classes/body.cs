@@ -91,6 +91,7 @@ namespace asteroids {
         }
 
         internal Type? shapeType;
+        public Type? ShapeType { get { return shapeType; } }
 
         internal Vector2f shapeOffset;
 

@@ -108,6 +108,18 @@ namespace asteroids {
                 updatesAcc = 0;
             }
 
+            // Update all our particles
+            for (int k = Global.particles.Count - 1; k >= 0; k--) {
+                particle p = Global.particles[k];
+
+                p.update(delta);
+
+                if (DateTime.Now > p.DestroyTime) {
+                    Global.particles.RemoveAt(k);
+                    break;
+                }
+            }
+
             Global.Keyboard.update();
 
             if (Global.Keyboard["escape"].isPressed) {
@@ -129,7 +141,7 @@ namespace asteroids {
                 if (newTorpedo != null) { bodies.Add(newTorpedo); }
             }
 
-            if (Global.Keyboard["w"].justPressed) {
+            if (Global.Keyboard["w"].justPressed && ply != null) {
                 Global.sfx["thrust"].play(true);
             }
 
@@ -160,45 +172,30 @@ namespace asteroids {
                         if (ply != null) {
                             if (a == ply.ship) {
                                 Global.sfx["bangMedium"].play();
+                                Global.sfx["thrust"].stop();
                                 bodies.RemoveAt(j--);
+                                Global.particles.AddRange(particle.convertToParticles(ply.ship, DateTime.Now.AddSeconds(5)));
                                 ply = null;
                                 playerSpawnTime = DateTime.Now.AddSeconds(3);
-                                break;
                             }
                         }
 
                         // if torpedo hits asteroid then destroy it                     
-                        if (a.GetType() == typeof(torpedo)) {
-                            asteroid ast = (asteroid)b;
-                            TotalPoints += ast.Points;
+                        asteroid ast = (asteroid)b;
+                        for (int i = 0; i < 6; i++) {
+                            particle p = new particle(DateTime.Now.AddSeconds(3));
+                            p.Position = ast.Position;
+                            p.Velocity = randvec2(-50, 50);
+                            VertexArray va = new VertexArray(PrimitiveType.Points, 1);
+                            va[0] = new Vertex(new Vector2f(), Color.White);
+                            p.Shape = va;                            
+                            Global.particles.Add(p);
+                        }
 
-                            // larger asteroids break into smaller ones
-                            string bangSound = "bangMedium";
-                            
-                            switch (((asteroid)b).size) {
-                                case asteroid.enumSize.small:
-                                    bangSound = "bangSmall";
-                                    break;
-                                case asteroid.enumSize.medium:
-                                    bangSound = "bangMedium";
-                                    break;
-                                case asteroid.enumSize.large:
-                                    bangSound = "bangLarge";
-                                    break;
-                            }
+                        TotalPoints += ast.Points;
+                        bodies.AddRange(ast.breakup(2));
 
-                            Global.sfx[bangSound].play();
-
-                            if (ast.size > asteroid.enumSize.small) {
-                                int numNewAsteroids = 2;
-
-                                for (int l = 0; l < numNewAsteroids; l++) {
-                                    asteroid newAsteroid = new asteroid((asteroid.enumSize)((int)ast.size)-1);
-                                    newAsteroid.Position = a.Position + randvec2(-a.BoundingCircleRadius, a.BoundingCircleRadius);
-                                    bodies.Add(newAsteroid);
-                                }
-                            }
-
+                        try {
                             if (k > j) {
                                 bodies.RemoveAt(k--);
                                 bodies.RemoveAt(j--);
@@ -206,9 +203,11 @@ namespace asteroids {
                                 bodies.RemoveAt(j--);
                                 bodies.RemoveAt(k--);
                             }
-
-                            break;
+                        } catch (Exception e) {
+                            Console.WriteLine(e.Message);
                         }
+
+                        break;
                     }
                 }
 
@@ -240,6 +239,10 @@ namespace asteroids {
             foreach (body? b in bodies) {
                 if (b == null) { continue; }
                 b.draw(window);
+            }
+
+            foreach (particle p in Global.particles) {
+                p.draw(window);
             }
 
             window.Draw(pointsText);

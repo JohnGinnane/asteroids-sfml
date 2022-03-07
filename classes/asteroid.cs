@@ -74,6 +74,37 @@ namespace asteroids {
             if (this.Position.Y > Global.ScreenSize.Y) { this.SetYPosition(0); }
         }
 
+        public List<asteroid> breakup(int numNewAsteroids) {
+            List<asteroid> newAsteroids = new List<asteroid>();
+
+            // larger asteroids break into smaller ones
+            string bangSound = "bangMedium";
+            
+            switch (this.size) {
+                case asteroid.enumSize.small:
+                    bangSound = "bangSmall";
+                    break;
+                case asteroid.enumSize.medium:
+                    bangSound = "bangMedium";
+                    break;
+                case asteroid.enumSize.large:
+                    bangSound = "bangLarge";
+                    break;
+            }
+
+            Global.sfx[bangSound].play();
+
+            if (this.size > enumSize.small) {
+                for (int i = 0; i < numNewAsteroids; i++) {
+                    asteroid newAsteroid = new asteroid((enumSize)((int)this.size - 1));
+                    newAsteroid.Position = this.Position + randvec2(-this.BoundingCircleRadius, this.BoundingCircleRadius);
+                    newAsteroids.Add(newAsteroid);
+                }
+            }
+
+            return newAsteroids;
+        }
+
         // if the asteroid is hit by a torpedo it should break up
         public override void resolve(collision c)
         {

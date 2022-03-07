@@ -15,6 +15,7 @@ namespace asteroids {
         }
 
         public static Dictionary<string, sound> sfx = new Dictionary<string, sound>();
-    }
 
+        public static List<particle>particles = new List<particle>();
+    }
 }
