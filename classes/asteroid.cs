@@ -115,11 +115,9 @@ namespace asteroids {
                 if (side == 0) {
                     a.Position = new Vector2f(randint(0, 1) * Global.ScreenSize.X,
                                               randfloat(0, Global.ScreenSize.Y));
-                    Console.WriteLine("side 0");
                 } else {
                     a.Position = new Vector2f(randfloat(0, Global.ScreenSize.X),
                                               randint(0, 1) * Global.ScreenSize.Y);
-                    Console.WriteLine("side 1");
                 }
                 
                 newAsteroids.Add(a);

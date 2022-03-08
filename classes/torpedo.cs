@@ -7,18 +7,6 @@ namespace asteroids {
         private DateTime spawnTime;
         public DateTime SpawnTime { get { return spawnTime; } }
 
-        private bool homing = false;
-        public bool Homing {
-            get { return homing; }
-            set { homing = value; }
-        }
-
-        private body? target;
-        public body? Target {
-            get { return target; }
-            set { target = value; }
-        }
-
         private DateTime destroyTime;
         public DateTime DestroyTime { get { return destroyTime; } }
         public torpedo(Vector2f position, Vector2f velocity) {
@@ -31,7 +19,6 @@ namespace asteroids {
             this.FillColour = Color.Transparent;
             this.OutlineColour = Color.White;
             this.OutlineThickness = 1f;
-            this.Homing = false;
         }
 
         public override void draw(RenderWindow window)
@@ -42,18 +29,6 @@ namespace asteroids {
             if (this.Position.X > Global.ScreenSize.X) { this.SetXPosition(0); }
             if (this.Position.Y < 0) { this.SetYPosition(Global.ScreenSize.Y); }
             if (this.Position.Y > Global.ScreenSize.Y) { this.SetYPosition(0); }
-        }
-
-        public override void update(float delta)
-        {
-            base.update(delta);
-
-            // move torwards target
-            if (this.Homing) {
-                if (this.Target != null) {
-                    this.AddVelocity(normalise(Target.Position - this.Position) * 10f);
-                }
-            }
         }
     }
 }

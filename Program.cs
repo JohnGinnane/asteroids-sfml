@@ -39,7 +39,7 @@ namespace asteroids {
         player? ply;
 
         List<body?> bodies;
-        DateTime playerSpawnTime;
+        DateTime? playerSpawnTime;
 
         DateTime? nextLevelTime;
         int level = 0;
@@ -54,6 +54,16 @@ namespace asteroids {
             }
         }
 
+        public enum enumGameState {
+            start,
+            running,
+            end
+        }
+
+        public enumGameState gameState = enumGameState.start;
+
+        int lives;
+
         public asteroidsGame() {            
             // using these lists makes it easier
             // to update and draw all items            
@@ -61,7 +71,6 @@ namespace asteroids {
 
             updateLastTime = DateTime.Now;
             frameLastTime = DateTime.Now;
-            playerSpawnTime = DateTime.Now.AddSeconds(1);
 
             window = new RenderWindow(new VideoMode((uint)Global.ScreenSize.X, (uint)Global.ScreenSize.Y),
                                       "Asteroids",
@@ -78,14 +87,14 @@ namespace asteroids {
             pointsText.FillColor = Color.White;
             pointsText.Position = new Vector2f(10, 10);
 
+            nextLevelTime = DateTime.Now.AddSeconds(1);
+
             // Load sounds
             Global.sfx.Add("fire",       new sound("fire",       "sound/fire.wav"));
             Global.sfx.Add("thrust",     new sound("thrust",     "sound/thrust.wav"));
             Global.sfx.Add("bangSmall",  new sound("bangSmall",  "sound/bangSmall.wav"));
             Global.sfx.Add("bangMedium", new sound("bangMedium", "sound/bangMedium.wav"));
             Global.sfx.Add("bangLarge",  new sound("bang3",      "sound/bangLarge.wav"));
-
-            nextLevelTime = DateTime.Now.AddSeconds(1);
         }
 
         private void window_CloseWindow(object? sender, System.EventArgs? e) {
@@ -95,8 +104,15 @@ namespace asteroids {
 
         public void nextLevel() {
             level++;
-            bodies.AddRange(asteroid.spawnAsteroids(level));
+            bodies.AddRange(asteroid.spawnAsteroids(level + 3));
             nextLevelTime = null;
+        }
+
+        public void clearLevel() {
+            for (int k = bodies.Count - 1; k >= 0; k--) {
+                if (bodies[k] == null) { continue; }
+                bodies.RemoveAt(k);
+            }
         }
 
         private void update(float delta) {
@@ -110,10 +126,7 @@ namespace asteroids {
                 updatesAcc = 0;
             }
 
-            // Check if we cleared the level
-            if (DateTime.Now > nextLevelTime) {
-                nextLevel();
-            }
+            Global.Keyboard.update();
 
             // Update all our particles
             for (int k = Global.particles.Count - 1; k >= 0; k--) {
@@ -127,143 +140,159 @@ namespace asteroids {
                 }
             }
 
-            Global.Keyboard.update();
-
             if (Global.Keyboard["escape"].isPressed) {
                 window.Close();
             }
 
-            if (ply == null) {
-                if (DateTime.Now > playerSpawnTime) {
-                    ply = new player();
-                    bodies.Add(ply.ship);
+            if (Global.Keyboard["space"].justPressed) {
+                switch (gameState) {
+                    case enumGameState.start:
+                        gameState = enumGameState.running;
+                        playerSpawnTime = DateTime.Now.AddSeconds(1);
+                        level = 0;
+                        TotalPoints = 0;
+                        lives = 3;
+                        clearLevel();
+                        nextLevelTime = DateTime.Now.AddSeconds(1);
+                        break;
+                    case enumGameState.running:
+                        if (ply != null) { bodies.Add(ply.fire()); }
+                        break;
+                    case enumGameState.end:
+                        gameState = enumGameState.start;
+                        level = 0;
+                        TotalPoints = 0;
+                        lives = 3;
+                        break;
                 }
-            } else {
-                ply.update(delta);
-            }
-
-            if (Global.Keyboard["space"].isPressed && ply != null) {
-                torpedo? newTorpedo = ply.fire();
-
-                if (newTorpedo != null) { bodies.Add(newTorpedo); }
-            }
-
-            if (Global.Keyboard["w"].justPressed && ply != null) {
-                Global.sfx["thrust"].play(true);
             }
 
             if (Global.Keyboard["w"].justReleased) {
                 Global.sfx["thrust"].stop();
             }
 
-            for (int k = bodies.Count - 1; k >= 0; k--) {
-                body? b = bodies[k];
-                if (b == null) { continue; }
+            // Check if we cleared the level
+            if (gameState < enumGameState.end) {
+                if (nextLevelTime != null) {
+                    if (DateTime.Now > nextLevelTime) {
+                        nextLevel();
+                        nextLevelTime = null;
+                    }
+                }
 
-                // handle homing
-                if (b.GetType() == typeof(torpedo)) {
-                    torpedo t = (torpedo)b;
+                // Update all bodies
+                for (int k = bodies.Count - 1; k >= 0; k--) {
+                    body? b = bodies[k];
+                    if (b == null) { continue; }
 
-                    if (t.Target == null) {
-                        // find the nearest asteroid
-                        asteroid? nearest = null;
-                        float nearestDot = -1;
-
+                    // handle collisions
+                    if (b.CheckCollisions) {
                         for (int j = bodies.Count - 1; j >= 0; j--) {
                             if (k == j) { continue; }
-                            if (bodies[j] == null) { continue; }
-                            if (bodies[j].GetType() != typeof(asteroid)) { continue; }
-                            
-                            Vector2f astDir = normalise(bodies[j].Position - ply.ship.Position);
-                            float astDot = dot(vector2f(ply.ship.Angle), astDir);
-                            if (astDot > nearestDot) {
-                                nearestDot = astDot;
-                                nearest = (asteroid?)bodies[j];
-                            }
-                        }
+                            body? a = bodies[j];
+                            if (a == null) { continue; }
 
-                        if (nearest != null) {
-                            t.Target = nearest;
-                        }
-                    }
-                }
+                            collision? c = collide(a, b);
 
-                // handle collisions
-                if (b.CheckCollisions) {
-                    for (int j = bodies.Count - 1; j >= 0; j--) {
-                        if (k == j) { continue; }
-                        body? a = bodies[j];
-                        if (a == null) { continue; }
+                            if (c == null) { continue; }
 
-                        collision? c = collide(a, b);
+                            if (b.GetType() == typeof(asteroid)) {
+                                // the asteroid was hit by a player or torpedo
+                                asteroid ast = (asteroid)b;
 
-                        if (c == null) { continue; }
+                                TotalPoints += ast.Points;
+                                bodies.AddRange(ast.breakup(2));
 
-                        if (b.GetType() == typeof(asteroid)) {
-                            // if the player is hit by an asteroid then destroy the ship
-                            if (ply != null) {
-                                if (a == ply.ship) {
+                                // if the player is hit by an asteroid then destroy the ship
+                                if (ply != null && a == ply.ship) {
                                     Global.sfx["bangMedium"].play();
                                     Global.sfx["thrust"].stop();
-                                    bodies.RemoveAt(j--);
                                     Global.particles.AddRange(particle.convertToParticles(ply.ship, DateTime.Now.AddSeconds(5)));
                                     ply = null;
-                                    playerSpawnTime = DateTime.Now.AddSeconds(3);
-                                }
-                            }
+                                    lives--;
 
-                            // if torpedo hits asteroid then destroy it                     
-                            asteroid ast = (asteroid)b;
-                            for (int i = 0; i < 6; i++) {
-                                particle p = new particle(DateTime.Now.AddSeconds(3));
-                                p.Position = ast.Position;
-                                p.Velocity = randvec2(-50, 50);
-                                VertexArray va = new VertexArray(PrimitiveType.Points, 1);
-                                va[0] = new Vertex(new Vector2f(), Color.White);
-                                p.Shape = va;                            
-                                Global.particles.Add(p);
-                            }
-
-                            TotalPoints += ast.Points;
-                            bodies.AddRange(ast.breakup(2));
-
-                            try {
-                                if (k > j) {
-                                    bodies.RemoveAt(k--);
-                                    bodies.RemoveAt(j--);
+                                    if (lives > 0) {
+                                        playerSpawnTime = DateTime.Now.AddSeconds(3);
+                                    } else {
+                                        gameState = enumGameState.end;
+                                        clearLevel();
+                                        k = -1; // skip to the end of the outer loop
+                                        break;
+                                    }
                                 } else {
-                                    bodies.RemoveAt(j--);
-                                    bodies.RemoveAt(k--);
+                                    if (a.GetType() == typeof(torpedo)) {
+                                        // if torpedo hits asteroid then destroy it
+                                        for (int i = 0; i < 6; i++) {
+                                            particle p = new particle(DateTime.Now.AddSeconds(3));
+                                            p.Position = ast.Position;
+                                            p.Velocity = randvec2(-50, 50);
+                                            VertexArray va = new VertexArray(PrimitiveType.Points, 1);
+                                            va[0] = new Vertex(new Vector2f(), Color.White);
+                                            p.Shape = va;                            
+                                            Global.particles.Add(p);
+                                        }
+                                    }
                                 }
-                            } catch (Exception e) {
-                                Console.WriteLine(e.Message);
-                            }
 
-                            break;
+                                try {
+                                    if (k > j) {
+                                        bodies.RemoveAt(k);
+                                        bodies.RemoveAt(j);
+                                    } else {
+                                        bodies.RemoveAt(j);
+                                        bodies.RemoveAt(k);
+                                    }
+                                    
+                                    k--;
+                                } catch (Exception e) {
+                                    Console.WriteLine(e.Message);
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+
+                    b.update(delta);
+
+                    if (b.GetType() == typeof(torpedo)) {
+                        torpedo t = (torpedo)b;
+                        if (DateTime.Now > t.DestroyTime) {
+                            bodies.RemoveAt(k);
                         }
                     }
                 }
-
-                b.update(delta);
-
-                if (b.GetType() == typeof(torpedo)) {
-                    torpedo t = (torpedo)b;
-                    if (DateTime.Now > t.DestroyTime) {
-                        bodies.RemoveAt(k);
-                    }
-                }
+                
             }
 
-            // If no asteroids or saucers are left then end level
-            if (nextLevelTime == null) {
-                int targets = 0;
-                foreach (body? b in bodies) {
-                    if (b == null) { continue; }
-                    if (b.GetType() == typeof(asteroid)) { targets++; }
-                }
+            if (gameState == enumGameState.running) {
+                if (ply != null) {
+                    ply.update(delta);
 
-                if (targets == 0) { 
-                    nextLevelTime = DateTime.Now.AddSeconds(1);
+                    if (Global.Keyboard["w"].justPressed) {
+                        Global.sfx["thrust"].play(true);
+                    }
+                } else {
+                    if (playerSpawnTime != null) {
+                        if (DateTime.Now > playerSpawnTime) {
+                            ply = new player();
+                            bodies.Add(ply.ship);
+                            playerSpawnTime = null;
+                        }
+                    }
+                }
+                
+                // If no asteroids or saucers are left then end level
+                if (nextLevelTime == null) {
+                    int targets = 0;
+                    foreach (body? b in bodies) {
+                        if (b == null) { continue; }
+                        if (b.GetType() == typeof(asteroid)) { targets++; }
+                    }
+
+                    if (targets == 0) { 
+                        nextLevelTime = DateTime.Now.AddSeconds(1);
+                    }
                 }
             }
 
@@ -290,6 +319,40 @@ namespace asteroids {
             }
 
             window.Draw(pointsText);
+
+            // Display lives
+            Vector2f livesStartOffset = new Vector2f(20, 60);
+            Vector2f livesOffset = new Vector2f(24, 0);
+
+            if (gameState == enumGameState.running) {
+                for (int i = 0; i < lives; i++) {
+                    VertexArray va = new VertexArray(models.SpaceShip);
+                    for (uint j = 0; j < va.VertexCount; j++) {
+                        va[j] = new Vertex(livesStartOffset + livesOffset * i + va[j].Position, Color.White);
+                    }
+
+                    window.Draw(va);
+                }
+            }
+
+            // Display text for start and end game
+            if (gameState == enumGameState.start) {
+                Text textStart =new Text("Press space to start", Fonts.Hyperspace);
+                textStart.Position = Global.ScreenSize / 2f;
+                textStart.CharacterSize = 36;
+                FloatRect textBounds = textStart.GetLocalBounds();
+                textStart.Origin = new Vector2f(textBounds.Left + textBounds.Width / 2f,
+                                                textBounds.Top + textBounds.Height / 2f);
+                window.Draw(textStart);
+            } else if (gameState == enumGameState.end) {
+                Text textGameOver = new Text("Game Over", Fonts.Hyperspace);
+                textGameOver.Position = Global.ScreenSize / 2f;
+                textGameOver.CharacterSize = 36;
+                FloatRect textBounds = textGameOver.GetLocalBounds();
+                textGameOver.Origin = new Vector2f(textBounds.Left + textBounds.Width / 2f,
+                                                   textBounds.Top + textBounds.Height / 2f);
+                window.Draw(textGameOver);
+            }
 
             window.Display();
         }

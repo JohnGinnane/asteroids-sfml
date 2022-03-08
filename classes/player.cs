@@ -6,13 +6,13 @@ namespace asteroids {
     public class player {
         public polybody ship;
 
-        private float fireCooldown = 250f;
+        private float fireCooldown = 100f;
         DateTime lastFire;
         private float maxMoveSpeed = 600f;
         private float plyMoveSpeed = 200f;
         private float maxTurnSpeed = 100f;
         private float plyTurnSpeed = 50f;
-        private float torpedoSpeed = 100f;
+        private float torpedoSpeed = 400f;
 
         public player() {
             float offsetx = 0f;
