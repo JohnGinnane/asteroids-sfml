@@ -54,6 +54,11 @@ namespace asteroids {
             }
         }
 
+        // used for playing beats
+        int maxTargetsThisLevel = 0;
+        DateTime nextBeat;
+        uint lastBeat;
+
         public enum enumGameState {
             start,
             running,
@@ -95,6 +100,8 @@ namespace asteroids {
             Global.sfx.Add("bangSmall",  new sound("bangSmall",  "sound/bangSmall.wav"));
             Global.sfx.Add("bangMedium", new sound("bangMedium", "sound/bangMedium.wav"));
             Global.sfx.Add("bangLarge",  new sound("bang3",      "sound/bangLarge.wav"));
+            Global.sfx.Add("beat1",      new sound("beat1",      "sound/beat1.wav"));
+            Global.sfx.Add("beat2",      new sound("beat2",      "sound/beat2.wav"));
         }
 
         private void window_CloseWindow(object? sender, System.EventArgs? e) {
@@ -106,6 +113,8 @@ namespace asteroids {
             level++;
             bodies.AddRange(asteroid.spawnAsteroids(level + 3));
             nextLevelTime = null;
+            
+            maxTargetsThisLevel = countTargets();
         }
 
         public void clearLevel() {
@@ -113,6 +122,32 @@ namespace asteroids {
                 if (bodies[k] == null) { continue; }
                 bodies.RemoveAt(k);
             }
+
+            maxTargetsThisLevel = 0;
+        }
+
+        public int countTargets() {
+            int c = 0;
+
+            foreach (body? b in bodies) {
+                if (b == null) { continue; }
+                if (b.GetType() != typeof(asteroid)) { continue; }
+                asteroid a = (asteroid)b;
+
+                switch (a.size) {
+                    case asteroid.enumSize.small:
+                        c++;
+                        break;
+                    case asteroid.enumSize.medium:
+                        c+=2;
+                        break;
+                    case asteroid.enumSize.large:
+                        c+=4;
+                        break;
+                }
+            }
+
+            return c;
         }
 
         private void update(float delta) {
@@ -281,16 +316,24 @@ namespace asteroids {
                         }
                     }
                 }
+
+                // play the beat
+                if (DateTime.Now > nextBeat && maxTargetsThisLevel > 0) {
+                    int targets = countTargets();
+
+                    nextBeat = DateTime.Now.AddSeconds(0.5f + ((float)targets / (float)maxTargetsThisLevel) * 0.5f);
+                    if (lastBeat == 0) {
+                        Global.sfx["beat2"].play();
+                        lastBeat = 1;
+                    } else {
+                        Global.sfx["beat1"].play();
+                        lastBeat = 0;
+                    }
+                }
                 
                 // If no asteroids or saucers are left then end level
                 if (nextLevelTime == null) {
-                    int targets = 0;
-                    foreach (body? b in bodies) {
-                        if (b == null) { continue; }
-                        if (b.GetType() == typeof(asteroid)) { targets++; }
-                    }
-
-                    if (targets == 0) { 
+                    if (countTargets() == 0) { 
                         nextLevelTime = DateTime.Now.AddSeconds(1);
                     }
                 }
