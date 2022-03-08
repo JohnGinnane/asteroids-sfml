@@ -354,6 +354,11 @@ namespace asteroids {
                 window.Draw(textGameOver);
             }
 
+            // draw the ship's thrust
+            if (ply != null) {
+                ply.draw(window);
+            }
+
             window.Display();
         }
 

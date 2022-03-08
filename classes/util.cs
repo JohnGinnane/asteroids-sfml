@@ -105,7 +105,17 @@ namespace asteroids {
             float s = (float)Math.Sin(angle);
 
             return new Vector2f(vector.X * c - vector.Y * s,
-                                vector.X * s - vector.Y * c);
+                                vector.X * s + vector.Y * c);
+        }
+
+        public static VertexArray transform(VertexArray va, Vector2f offset) {
+            if (offset == new Vector2f()) { return va; }
+
+            for (uint i = 0; i < va.VertexCount; i++) {
+                va[i] = new Vertex(va[i].Position + offset, va[i].Color, va[i].TexCoords);
+            }
+
+            return va;
         }
 
         public static void drawText(RenderWindow window, string text, Vector2f pos, Font? font = null, uint size = 12) {

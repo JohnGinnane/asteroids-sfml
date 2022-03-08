@@ -15,18 +15,7 @@ namespace asteroids {
         private float torpedoSpeed = 400f;
 
         public player() {
-            float offsetx = 0f;
-            float offsety = 2f;
-            float scale = 0.5f;
-
-            VertexArray va = new VertexArray(PrimitiveType.LineStrip, 5);
-            va[0] = new Vertex(new Vector2f(offsetx,      offsety - 24) * scale, Color.White);
-            va[1] = new Vertex(new Vector2f(offsetx + 18, offsety + 24) * scale, Color.White);
-            va[2] = new Vertex(new Vector2f(offsetx,      offsety + 18) * scale, Color.White);
-            va[3] = new Vertex(new Vector2f(offsetx - 18, offsety + 24) * scale, Color.White);
-            va[4] = new Vertex(new Vector2f(offsetx,      offsety - 24) * scale, Color.White);
-            
-            this.ship = new polybody(rotate(va, (float)Math.PI/2f));
+            this.ship = new polybody(rotate(models.SpaceShip, (float)Math.PI/2f));
             this.ship.Position = Global.ScreenSize / 2f;
             this.ship.Drag = 0.2f;
             this.ship.AngularDrag = 8f;
@@ -82,7 +71,11 @@ namespace asteroids {
         }
 
         public void draw(RenderWindow window) {
-            ship.draw(window);
+            // draw the little thrust model
+            if (DateTime.Now.Millisecond % 200 < 100 && Global.Keyboard["w"].isPressed) {
+                VertexArray thrustVa = transform(rotate(models.SpaceShipThrust, this.ship.Angle - (float)Math.PI/2f), this.ship.Position);
+                window.Draw(thrustVa);
+            }
         }
     }
 }

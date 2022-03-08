@@ -24,5 +24,25 @@ namespace asteroids {
                 return spaceShip;                
             }
         }
+
+        private static VertexArray? spaceShipThrust;
+        public static VertexArray SpaceShipThrust {
+            get {
+                if (spaceShipThrust == null) {
+                    float offsetx = 0f;
+                    float offsety = 2f;
+                    float scale = 0.5f;
+
+                    VertexArray va = new VertexArray(PrimitiveType.LineStrip, 3);
+                    va[0] = new Vertex(new Vector2f(offsetx - 9, offsety - 24) * scale, Color.White);
+                    va[1] = new Vertex(new Vector2f(offsetx,     offsety - 45) * scale, Color.White);
+                    va[2] = new Vertex(new Vector2f(offsetx + 9, offsety - 24) * scale, Color.White);
+
+                    spaceShipThrust = va;
+                }
+
+                return spaceShipThrust;
+            }
+        }
     }
 }

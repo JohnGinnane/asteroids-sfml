@@ -1,6 +1,7 @@
 using SFML.Graphics;
 using SFML.Window;
 using SFML.System;
+using static asteroids.util;
 
 namespace asteroids {
     public class polybody : body {
@@ -63,17 +64,7 @@ namespace asteroids {
             VertexArray ogva = (VertexArray)Shape;
             VertexArray va = new VertexArray(ogva);
             for (uint i = 0; i < va.VertexCount; i++) {
-                if (angle == 0) {
-                    va[i] = new Vertex(this.Position + ogva[i].Position);
-                } else {
-                    float s = (float)Math.Sin(this.Angle);
-                    float c = (float)Math.Cos(this.Angle);
-
-                    float x2 = va[i].Position.X * c - va[i].Position.Y * s;
-                    float y2 = va[i].Position.X * s + va[i].Position.Y * c;
-
-                    va[i] = new Vertex(this.Position + new Vector2f(x2, y2), this.OutlineColour);
-                }
+                va[i] = new Vertex(this.Position + rotate(ogva[i].Position, this.Angle), this.OutlineColour);
             }
             
             window.Draw(va, RenderStates.Default);
