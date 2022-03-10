@@ -5,13 +5,19 @@ using static asteroids.util;
 namespace asteroids {
     public abstract class body {
 #region "Properties"
-        private bool debug;
+        private object? parent;
+        public object? Parent {
+            get { return parent; }
+            set { parent = value; }
+        }
+
+        private bool debug = false;
         public bool Debug {
             get { return debug; }
             set { debug = value; }
         }
 
-        private Color debugColour;
+        private Color debugColour = Color.White;
         public Color DebugColour {
             get { return debugColour; }
             set { debugColour = value; }
@@ -174,7 +180,7 @@ namespace asteroids {
                 if (va == null) { return 0f; }
 
                 for (uint i = 0; i < va.VertexCount; i++) {
-                    float curDist = magnitude(this.Position - va[i].Position);
+                    float curDist = magnitude(va[i].Position);
 
                     if (curDist > furthestPoint) { furthestPoint = curDist; }
                 }

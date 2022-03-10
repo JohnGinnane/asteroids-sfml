@@ -38,10 +38,15 @@ namespace asteroids {
         player? ply;
 
         List<body?> bodies;
+        List<saucer> saucers;
+
         DateTime? playerSpawnTime;
 
         DateTime? nextLevelTime;
         int level = 0;
+
+        float saucerSpawnTime = 10f;
+        DateTime nextSaucer;
 
         private Text pointsText;
         int totalPoints;
@@ -52,6 +57,8 @@ namespace asteroids {
                 pointsText.DisplayedString = value.ToString();
             }
         }
+        
+        int pointsForLife = 10000;
 
         // used for playing beats
         int maxTargetsThisLevel = 0;
@@ -72,6 +79,7 @@ namespace asteroids {
             // using these lists makes it easier
             // to update and draw all items            
             bodies = new List<body?>();
+            saucers = new List<saucer>();
 
             updateLastTime = DateTime.Now;
             frameLastTime = DateTime.Now;
@@ -114,9 +122,17 @@ namespace asteroids {
             nextLevelTime = null;
             
             maxTargetsThisLevel = countTargets();
+            nextSaucer = DateTime.Now.AddSeconds(saucerSpawnTime);
         }
 
         public void clearLevel() {
+            nextSaucer = DateTime.Now.AddSeconds(saucerSpawnTime);
+
+            for (int k = saucers.Count - 1; k >= 0; k--) {
+                bodies.Remove(saucers[k].SaucerShip);
+                saucers.RemoveAt(k);
+            }
+            
             for (int k = bodies.Count - 1; k >= 0; k--) {
                 if (bodies[k] == null) { continue; }
                 bodies.RemoveAt(k);
@@ -146,7 +162,52 @@ namespace asteroids {
                 }
             }
 
+            c += saucers.Count;
+
             return c;
+        }
+
+        private void addPoints(int points) {
+            TotalPoints += points;
+            if (TotalPoints >= pointsForLife) {
+                pointsForLife += 10000;
+                
+                if (lives < 3) {
+                    // play cool sound
+                    lives++;
+                }
+            }
+        }
+
+        private void destroyAsteroid(asteroid a) {            
+            Global.particles.AddRange(particle.createParticles(6, a.Position));
+            addPoints(a.Points);
+            bodies.AddRange(a.breakup(2));
+            bodies.Remove(a);
+        }
+
+        private void destroySaucer(saucer s) {
+            addPoints(1000);
+            bodies.Remove(s.SaucerShip);
+            saucers.Remove(s);
+        }
+
+        private void destroyPlayer() {
+            if (ply == null) { return; }
+
+            Global.sfx["bangMedium"].play();
+            Global.sfx["thrust"].stop();
+            Global.particles.AddRange(particle.convertToParticles(ply.ship, DateTime.Now.AddSeconds(5)));
+            bodies.Remove(ply.ship);
+            ply = null;
+            lives--;
+
+            if (lives > 0) {
+                playerSpawnTime = DateTime.Now.AddSeconds(3);
+            } else {
+                gameState = enumGameState.end;
+                clearLevel();
+            }
         }
 
         private void update(float delta) {
@@ -188,6 +249,7 @@ namespace asteroids {
                         lives = 3;
                         clearLevel();
                         nextLevelTime = DateTime.Now.AddSeconds(1);
+                        nextSaucer = DateTime.Now.AddSeconds(10);
                         break;
                     case enumGameState.running:
                         if (ply != null) { bodies.Add(ply.fire()); }
@@ -214,6 +276,12 @@ namespace asteroids {
                     }
                 }
 
+                if (DateTime.Now > nextSaucer && saucers.Count < 2) {
+                    nextSaucer = DateTime.Now.AddSeconds(10);
+                    saucers.Add(new saucer());
+                    bodies.Add(saucers.Last<saucer>().SaucerShip);
+                }
+
                 // Update all bodies
                 for (int k = bodies.Count - 1; k >= 0; k--) {
                     body? b = bodies[k];
@@ -230,59 +298,46 @@ namespace asteroids {
 
                             if (c == null) { continue; }
 
-                            if (b.GetType() == typeof(asteroid)) {
-                                // the asteroid was hit by a player or torpedo
-                                asteroid ast = (asteroid)b;
-
-                                TotalPoints += ast.Points;
-                                bodies.AddRange(ast.breakup(2));
-
-                                // if the player is hit by an asteroid then destroy the ship
-                                if (ply != null && a == ply.ship) {
-                                    Global.sfx["bangMedium"].play();
-                                    Global.sfx["thrust"].stop();
-                                    Global.particles.AddRange(particle.convertToParticles(ply.ship, DateTime.Now.AddSeconds(5)));
-                                    ply = null;
-                                    lives--;
-
-                                    if (lives > 0) {
-                                        playerSpawnTime = DateTime.Now.AddSeconds(3);
-                                    } else {
-                                        gameState = enumGameState.end;
-                                        clearLevel();
-                                        k = -1; // skip to the end of the outer loop
+                            // check if a torpedo has hit anything
+                            if (b.GetType() == typeof(torpedo)) {
+                                if (a.Parent != null) {
+                                    if (a.Parent.GetType() == typeof(player)) {
+                                        bodies.RemoveAt(k--);
+                                        destroyPlayer();
                                         break;
                                     }
-                                } else {
-                                    if (a.GetType() == typeof(torpedo)) {
-                                        // if torpedo hits asteroid then destroy it
-                                        for (int i = 0; i < 6; i++) {
-                                            particle p = new particle(DateTime.Now.AddSeconds(3));
-                                            p.Position = ast.Position;
-                                            p.Velocity = randvec2(-50, 50);
-                                            VertexArray va = new VertexArray(PrimitiveType.Points, 1);
-                                            va[0] = new Vertex(new Vector2f(), Color.White);
-                                            p.Shape = va;                            
-                                            Global.particles.Add(p);
-                                        }
+
+                                    if (a.Parent.GetType() == typeof(saucer)) {
+                                        bodies.RemoveAt(k--);
+                                        destroySaucer((saucer)a.Parent);
+                                        break;
                                     }
                                 }
 
-                                try {
-                                    if (k > j) {
-                                        bodies.RemoveAt(k);
-                                        bodies.RemoveAt(j);
-                                    } else {
-                                        bodies.RemoveAt(j);
-                                        bodies.RemoveAt(k);
-                                    }
-                                    
-                                    k--;
-                                } catch (Exception e) {
-                                    Console.WriteLine(e.Message);
+                                if (a.GetType() == typeof(asteroid)) {
+                                    bodies.RemoveAt(k--);
+                                    destroyAsteroid((asteroid)a);
+                                    break;
                                 }
+                            }
 
-                                break;
+                            // check if an asteroid was hit by a player or saucer
+                            if (b.GetType() == typeof(asteroid)) {
+                                if (a.Parent != null) {
+                                    if (a.Parent.GetType() == typeof(player)) {
+                                        bodies.RemoveAt(k--);
+                                        destroyAsteroid((asteroid)b);
+                                        destroyPlayer();
+                                        break;
+                                    }
+
+                                    if (a.Parent.GetType() == typeof(saucer)) {
+                                        bodies.RemoveAt(k--);
+                                        destroySaucer((saucer)a.Parent);
+                                        destroyAsteroid((asteroid)b);
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
@@ -296,7 +351,27 @@ namespace asteroids {
                         }
                     }
                 }
-                
+
+                for (int k = saucers.Count - 1; k >= 0; k--) {
+                    saucer s = saucers[k];
+                    
+                    s.update(delta);
+
+                    if (ply != null) {
+                        bodies.Add(s.fire(ply.ship));
+                    } else {
+                        bodies.Add(s.fire());
+                    }
+
+                    // if the saucer has reached the other side then just despawn it
+                    if (s.SaucerType == saucer.enumSaucerType.small) {
+                        if (s.SaucerShip.Position.X < 0) {
+                            bodies.Remove(s.SaucerShip);
+                            saucers.RemoveAt(k);
+                            continue;
+                        }
+                    }
+                }        
             }
 
             if (gameState == enumGameState.running) {
@@ -400,9 +475,6 @@ namespace asteroids {
             if (ply != null) {
                 ply.draw(window);
             }
-
-            VertexArray test = transform(models.FlyingSaucer, Global.ScreenSize / 2f);
-            window.Draw(test);
 
             window.Display();
         }

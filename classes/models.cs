@@ -69,6 +69,14 @@ namespace asteroids {
                     va[10] = new Vertex(multi(new Vector2f(offsetx + 6, offsety + 1),    scale), c);
                     va[11] = new Vertex(multi(new Vector2f(offsetx - 3, offsety + 1),    scale), c);
 
+                    Vector2f avgPos = new Vector2f();
+                    for (uint i = 0; i < va.VertexCount; i++) {
+                        avgPos += va[i].Position;
+                    }
+
+                    avgPos /= va.VertexCount;
+                    va = transform(va, -avgPos);
+
                     flyingSaucer = va;
                 }
 

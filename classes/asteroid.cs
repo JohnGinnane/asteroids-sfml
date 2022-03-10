@@ -111,7 +111,8 @@ namespace asteroids {
             // Spawn them on the edge of the screen
             for (int i = numAsteroids; i > 0; i--) {
                 asteroid a = new asteroid(enumSize.large);
-                int side = (int)Math.Round(randfloat(0f, 1f));
+                int side = randint(0, 1);
+                
                 if (side == 0) {
                     a.Position = new Vector2f(randint(0, 1) * Global.ScreenSize.X,
                                               randfloat(0, Global.ScreenSize.Y));

@@ -12,6 +12,23 @@ namespace asteroids {
 
         public particle(DateTime destroyTime) {
             this.destroyTime = destroyTime;
+            
+        }
+
+        public static List<particle> createParticles(uint num, Vector2f position) {
+            List<particle> newParticles = new List<particle>();
+
+            for (int i = 0; i < num; i++) {
+                particle p = new particle(DateTime.Now.AddSeconds(3));
+                p.Position = position;
+                p.Velocity = randvec2(-50, 50);
+                VertexArray va = new VertexArray(PrimitiveType.Points, 1);
+                va[0] = new Vertex(new Vector2f(), Color.White);
+                p.Shape = va;                            
+                Global.particles.Add(p);
+            }
+
+            return newParticles;
         }
 
         public static List<particle> convertToParticles(body b, DateTime destroyTime) {

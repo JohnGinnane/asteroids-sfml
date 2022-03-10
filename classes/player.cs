@@ -16,6 +16,7 @@ namespace asteroids {
 
         public player() {
             this.ship = new polybody(rotate(models.SpaceShip, (float)Math.PI/2f));
+            this.ship.Parent = this;
             this.ship.Position = Global.ScreenSize / 2f;
             this.ship.Drag = 0.2f;
             this.ship.AngularDrag = 8f;

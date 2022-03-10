@@ -17,7 +17,7 @@ namespace asteroids {
 
         public static int randint(int min, int max) {
             Random r = new Random((int)(DateTime.Now.Ticks%Int32.MaxValue));
-            return min + (int)(r.NextDouble() * (max - min));
+            return min + (int)(Math.Round(r.NextDouble() * (max - min)));
         }
 
         public static float randfloat(float min, float max) {
@@ -138,6 +138,18 @@ namespace asteroids {
 
         public static Vector2f multi(Vector2f a, Vector2f b) {
             return new Vector2f(a.X * b.X, a.Y * b.Y);
+        }
+
+        public static VertexArray scale(VertexArray va, float scale) {
+            if (scale == 1f) { return va; }
+
+            VertexArray newVa = new VertexArray(va);
+
+            for (uint i = 0; i < newVa.VertexCount; i++) {
+                newVa[i] = new Vertex(va[i].Position * scale, va[i].Color, va[i].TexCoords);
+            }
+
+            return newVa;
         }
     } // end class
 } // end namespace
