@@ -7,7 +7,6 @@ using static asteroids.collision;
 
 namespace asteroids {
     static class Program {
-        
         static void Main(string[] args) {
             Console.WriteLine("Hi :-)");
             Global.ScreenSize = new Vector2f(800, 800);
@@ -401,6 +400,9 @@ namespace asteroids {
             if (ply != null) {
                 ply.draw(window);
             }
+
+            VertexArray test = transform(models.FlyingSaucer, Global.ScreenSize / 2f);
+            window.Draw(test);
 
             window.Display();
         }

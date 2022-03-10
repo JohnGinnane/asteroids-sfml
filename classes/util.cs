@@ -110,12 +110,13 @@ namespace asteroids {
 
         public static VertexArray transform(VertexArray va, Vector2f offset) {
             if (offset == new Vector2f()) { return va; }
+            VertexArray newVa = new VertexArray(va.PrimitiveType, va.VertexCount);
 
             for (uint i = 0; i < va.VertexCount; i++) {
-                va[i] = new Vertex(va[i].Position + offset, va[i].Color, va[i].TexCoords);
+                newVa[i] = new Vertex(va[i].Position + offset, va[i].Color);
             }
 
-            return va;
+            return newVa;
         }
 
         public static void drawText(RenderWindow window, string text, Vector2f pos, Font? font = null, uint size = 12) {
@@ -133,6 +134,10 @@ namespace asteroids {
             T.FillColor = Color.White;
             window.Draw(T);
             window.Display();
+        }
+
+        public static Vector2f multi(Vector2f a, Vector2f b) {
+            return new Vector2f(a.X * b.X, a.Y * b.Y);
         }
     } // end class
 } // end namespace
