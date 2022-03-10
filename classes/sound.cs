@@ -7,6 +7,12 @@ namespace asteroids {
             get { return name; }
         }
 
+        public SoundStatus status {
+            get {
+                return sfmlSound.Status;
+            }
+        }
+
         private SoundBuffer buffer;
         private Sound sfmlSound;
         

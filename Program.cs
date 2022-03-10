@@ -100,15 +100,19 @@ namespace asteroids {
             pointsText.Position = new Vector2f(10, 10);
 
             nextLevelTime = DateTime.Now.AddSeconds(1);
+            nextSaucer = DateTime.Now.AddSeconds(2);
 
             // Load sounds
-            Global.sfx.Add("fire",       new sound("fire",       "sound/fire.wav"));
-            Global.sfx.Add("thrust",     new sound("thrust",     "sound/thrust.wav"));
-            Global.sfx.Add("bangSmall",  new sound("bangSmall",  "sound/bangSmall.wav"));
-            Global.sfx.Add("bangMedium", new sound("bangMedium", "sound/bangMedium.wav"));
-            Global.sfx.Add("bangLarge",  new sound("bang3",      "sound/bangLarge.wav"));
-            Global.sfx.Add("beat1",      new sound("beat1",      "sound/beat1.wav"));
-            Global.sfx.Add("beat2",      new sound("beat2",      "sound/beat2.wav"));
+            Global.sfx.Add("fire",        new sound("fire",        "sound/fire.wav"));
+            Global.sfx.Add("thrust",      new sound("thrust",      "sound/thrust.wav"));
+            Global.sfx.Add("bangSmall",   new sound("bangSmall",   "sound/bangSmall.wav"));
+            Global.sfx.Add("bangMedium",  new sound("bangMedium",  "sound/bangMedium.wav"));
+            Global.sfx.Add("bangLarge",   new sound("bang3",       "sound/bangLarge.wav"));
+            Global.sfx.Add("beat1",       new sound("beat1",       "sound/beat1.wav"));
+            Global.sfx.Add("beat2",       new sound("beat2",       "sound/beat2.wav"));
+            Global.sfx.Add("extraShip",   new sound("extraShip",   "sound/extraShip.wav"));
+            Global.sfx.Add("saucerSmall", new sound("saucerSmall", "sound/saucerSmall.wav"));
+            Global.sfx.Add("saucerBig",   new sound("sauceBig",    "sound/saucerBig.wav"));
         }
 
         private void window_CloseWindow(object? sender, System.EventArgs? e) {
@@ -173,7 +177,7 @@ namespace asteroids {
                 pointsForLife += 10000;
                 
                 if (lives < 3) {
-                    // play cool sound
+                    Global.sfx["extraShip"].play();
                     lives++;
                 }
             }
@@ -187,6 +191,12 @@ namespace asteroids {
         }
 
         private void destroySaucer(saucer s) {
+            if (s.SaucerType == saucer.enumSaucerType.small) {
+                Global.sfx["bangSmall"].play();
+            } else {
+                Global.sfx["bangMedium"].play();
+            }
+            Global.particles.AddRange(particle.convertToParticles(s.SaucerShip, DateTime.Now.AddSeconds(3)));
             addPoints(1000);
             bodies.Remove(s.SaucerShip);
             saucers.Remove(s);
@@ -347,7 +357,7 @@ namespace asteroids {
                     if (b.GetType() == typeof(torpedo)) {
                         torpedo t = (torpedo)b;
                         if (DateTime.Now > t.DestroyTime) {
-                            bodies.RemoveAt(k);
+                            bodies.RemoveAt(k--);
                         }
                     }
                 }
@@ -367,8 +377,13 @@ namespace asteroids {
                     if (s.SaucerType == saucer.enumSaucerType.small) {
                         if (s.SaucerShip.Position.X < 0) {
                             bodies.Remove(s.SaucerShip);
-                            saucers.RemoveAt(k);
+                            saucers.RemoveAt(k--);
                             continue;
+                        }
+                    } else {
+                        if (s.SaucerShip.Position.X > Global.ScreenSize.X) {
+                            bodies.Remove(s.SaucerShip);
+                            saucers.RemoveAt(k--);
                         }
                     }
                 }        
@@ -392,16 +407,34 @@ namespace asteroids {
                 }
 
                 // play the beat
-                if (DateTime.Now > nextBeat && maxTargetsThisLevel > 0) {
-                    int targets = countTargets();
+                if (saucers.Count > 0) {
+                    string targetSound = "saucerBig";
+                    if (saucers.FindIndex(0, saucers.Count, s => s.SaucerType == saucer.enumSaucerType.small) >= 0) {
+                        targetSound = "saucerSmall";
+                    }
+                    if (Global.sfx[targetSound].status != SoundStatus.Playing) {
+                        Global.sfx[targetSound].play(true);
+                    }
+                } else {
+                    if (Global.sfx["saucerSmall"].status == SoundStatus.Playing) {
+                        Global.sfx["saucerSmall"].stop();
+                    }
 
-                    nextBeat = DateTime.Now.AddSeconds(0.5f + ((float)targets / (float)maxTargetsThisLevel) * 0.5f);
-                    if (lastBeat == 0) {
-                        Global.sfx["beat2"].play();
-                        lastBeat = 1;
-                    } else {
-                        Global.sfx["beat1"].play();
-                        lastBeat = 0;
+                    if (Global.sfx["saucerBig"].status == SoundStatus.Playing) {
+                        Global.sfx["saucerBig"].stop();
+                    }
+
+                    if (DateTime.Now > nextBeat && maxTargetsThisLevel > 0) {
+                        int targets = countTargets();
+
+                        nextBeat = DateTime.Now.AddSeconds(0.5f + ((float)targets / (float)maxTargetsThisLevel) * 0.5f);
+                        if (lastBeat == 0) {
+                            Global.sfx["beat2"].play();
+                            lastBeat = 1;
+                        } else {
+                            Global.sfx["beat1"].play();
+                            lastBeat = 0;
+                        }
                     }
                 }
                 
